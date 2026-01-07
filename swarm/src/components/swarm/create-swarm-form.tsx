@@ -8,10 +8,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import { parseRevertReason } from '@/lib/errors';
 import { SWARM_REGISTRY_ADDRESS, AgentRole } from '@/lib/constants';
+
+// Agent role descriptions for tooltip
+const AGENT_ROLE_DESCRIPTIONS = {
+  [AgentRole.ROUTER]: {
+    name: 'Router',
+    description: 'Analyzes incoming tasks and routes them to the appropriate Worker agents. Acts as the coordinator of the swarm.',
+  },
+  [AgentRole.WORKER]: {
+    name: 'Worker', 
+    description: 'Executes the actual tasks. Specialized agents that perform specific work like writing, coding, research, etc.',
+  },
+  [AgentRole.QA]: {
+    name: 'QA',
+    description: 'Quality Assurance agent that validates and reviews the work produced by Workers before final delivery.',
+  },
+};
 
 // SwarmRegistry ABI (minimal for registerSwarm)
 const SWARM_REGISTRY_ABI = [
@@ -348,9 +366,31 @@ export function CreateSwarmForm() {
           {/* Agents Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className={errors.agents ? 'text-destructive' : ''}>
-                Agents *
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label className={errors.agents ? 'text-destructive' : ''}>
+                  Agents *
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <HelpCircle className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs p-4">
+                      <div className="space-y-3">
+                        <p className="font-semibold text-sm">Agent Roles:</p>
+                        {Object.values(AGENT_ROLE_DESCRIPTIONS).map((role) => (
+                          <div key={role.name}>
+                            <p className="font-medium text-sm">{role.name}</p>
+                            <p className="text-xs text-muted-foreground">{role.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Button
                 type="button"
                 variant="outline"
