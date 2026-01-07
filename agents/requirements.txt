@@ -1,0 +1,25 @@
+# CrewAI Agent Service Dependencies
+# =================================
+
+# Core CrewAI framework
+crewai>=0.80.0
+crewai-tools>=0.14.0
+
+# LLM Provider - Groq (Llama 3.3-70b)
+langchain-groq>=0.2.0
+
+# FastAPI for REST API
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Async HTTP client
+httpx>=0.27.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Pydantic for data validation
+pydantic>=2.9.0
+
+# Hashing for result hash generation
+hashlib-compat>=1.0.0

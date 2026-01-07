@@ -1,0 +1,21 @@
+# Foundry build artifacts
+/out/
+/cache/
+
+# Environment files (never commit secrets!)
+.env
+.env.local
+.env.*.local
+
+# Broadcast files (deployment artifacts)
+/broadcast/
+
+# Coverage reports
+lcov.info
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+.vscode/

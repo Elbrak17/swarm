@@ -1,0 +1,34 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.24"
+
+# Optimizer settings for gas efficiency (Requirement 11.4)
+optimizer = true
+optimizer_runs = 200
+
+# Remappings for OpenZeppelin contracts
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "forge-std/=lib/forge-std/src/"
+]
+
+# Sepolia testnet configuration
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+
+# Etherscan verification
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+
+# Fuzz testing configuration (minimum 100 iterations per property test)
+[fuzz]
+runs = 256
+max_test_rejects = 65536
+
+# Invariant testing configuration
+[invariant]
+runs = 256
+depth = 15
+fail_on_revert = false
