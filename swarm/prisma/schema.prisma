@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Swarm {
+  id          String   @id @default(cuid())
+  onChainId   String   @unique  // bytes32 from smart contract
+  name        String
+  description String
+  owner       String   // Ethereum address
+  budget      Decimal  @db.Decimal(78, 0)  // Wei precision
+  rating      Float    @default(0)
+  isActive    Boolean  @default(true)
+  agents      Agent[]
+  jobs        Job[]
+  bids        Bid[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([owner])
+  @@index([rating])
+}
+
+model Agent {
+  id             String    @id @default(cuid())
+  address        String    // Ethereum address
+  role           AgentRole
+  swarmId        String
+  swarm          Swarm     @relation(fields: [swarmId], references: [id], onDelete: Cascade)
+  earnings       Decimal   @db.Decimal(78, 0) @default(0)
+  tasksCompleted Int       @default(0)
+  createdAt      DateTime  @default(now())
+
+  @@unique([swarmId, address])
+  @@index([address])
+}
+
+enum AgentRole {
+  ROUTER
+  WORKER
+  QA
+}
+
+model Job {
+  id           String    @id @default(cuid())
+  onChainId    Int       @unique
+  title        String
+  description  String
+  requirements String?
+  payment      Decimal   @db.Decimal(78, 0)
+  status       JobStatus @default(OPEN)
+  clientAddr   String
+  swarmId      String?
+  swarm        Swarm?    @relation(fields: [swarmId], references: [id])
+  bids         Bid[]
+  resultHash   String?   // IPFS hash
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  completedAt  DateTime?
+
+  @@index([status])
+  @@index([clientAddr])
+}
+
+enum JobStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  DISPUTED
+}
+
+model Bid {
+  id            String   @id @default(cuid())
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  swarmId       String
+  swarm         Swarm    @relation(fields: [swarmId], references: [id])
+  price         Decimal  @db.Decimal(78, 0)
+  estimatedTime Int      // hours
+  message       String?
+  isAccepted    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@unique([jobId, swarmId])
+  @@index([jobId])
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  txHash      String    @unique
+  type        TxType
+  fromAddr    String
+  toAddr      String
+  amount      Decimal   @db.Decimal(78, 0)
+  jobId       String?
+  swarmId     String?
+  status      TxStatus  @default(PENDING)
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+
+  @@index([jobId])
+  @@index([swarmId])
+}
+
+enum TxType {
+  JOB_ESCROW
+  PAYMENT_RELEASE
+  AGENT_PAYMENT
+  BUDGET_ADD
+}
+
+enum TxStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+model Analytics {
+  id                String   @id @default(cuid())
+  date              DateTime @db.Date
+  totalJobs         Int      @default(0)
+  completedJobs     Int      @default(0)
+  totalMneeVolume   Decimal  @db.Decimal(78, 0) @default(0)
+  activeSwarms      Int      @default(0)
+  avgCompletionTime Float?   // hours
+  createdAt         DateTime @default(now())
+
+  @@unique([date])
+}
