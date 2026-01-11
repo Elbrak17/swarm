@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
@@ -370,26 +370,24 @@ export function CreateSwarmForm() {
                 <Label className={errors.agents ? 'text-destructive' : ''}>
                   Agents *
                 </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                        <HelpCircle className="w-4 h-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs p-4">
-                      <div className="space-y-3">
-                        <p className="font-semibold text-sm">Agent Roles:</p>
-                        {Object.values(AGENT_ROLE_DESCRIPTIONS).map((role) => (
-                          <div key={role.name}>
-                            <p className="font-medium text-sm">{role.name}</p>
-                            <p className="text-xs text-muted-foreground">{role.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                      <HelpCircle className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="start" className="w-80">
+                    <div className="space-y-3">
+                      <p className="font-semibold text-sm">Agent Roles:</p>
+                      {Object.values(AGENT_ROLE_DESCRIPTIONS).map((role) => (
+                        <div key={role.name}>
+                          <p className="font-medium text-sm">{role.name}</p>
+                          <p className="text-xs text-muted-foreground">{role.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
               <Button
                 type="button"
