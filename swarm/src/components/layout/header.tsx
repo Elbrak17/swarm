@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { WalletButton } from '@/components/wallet';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 
 /**
@@ -56,8 +57,9 @@ export function Header() {
           </nav>
         </div>
 
-        {/* Desktop Wallet Connection */}
-        <div className="hidden md:block">
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-2">
+          <ThemeToggle />
           <WalletButton />
         </div>
 
@@ -124,7 +126,8 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t flex items-center justify-between">
+              <ThemeToggle />
               <WalletButton />
             </div>
           </nav>

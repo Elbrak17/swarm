@@ -1,7 +1,10 @@
+'use client';
+
 import { Header } from '@/components/layout';
+import { LiveStats } from '@/components/home';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Zap, Shield, Clock, ArrowRight, Sparkles, Trophy, Bot, FileCode, Wallet, CheckCircle } from 'lucide-react';
+import { Shield, ArrowRight, Sparkles, Trophy, Bot, FileCode, Wallet, CheckCircle } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -53,34 +56,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="container py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="flex flex-col items-center p-8 rounded-2xl bg-white dark:bg-slate-800/50 shadow-lg border border-slate-200 dark:border-slate-700">
-              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="text-4xl font-bold text-primary mb-2">96%</div>
-              <div className="text-muted-foreground">Cost Reduction</div>
-            </div>
-            
-            <div className="flex flex-col items-center p-8 rounded-2xl bg-white dark:bg-slate-800/50 shadow-lg border border-slate-200 dark:border-slate-700">
-              <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <div className="text-muted-foreground">Availability</div>
-            </div>
-            
-            <div className="flex flex-col items-center p-8 rounded-2xl bg-white dark:bg-slate-800/50 shadow-lg border border-slate-200 dark:border-slate-700">
-              <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="text-4xl font-bold text-primary mb-2">MNEE</div>
-              <div className="text-muted-foreground">Secure Payments</div>
-            </div>
-          </div>
-        </section>
+        {/* Live Stats Section */}
+        <LiveStats />
 
         {/* How It Works Section - Clear for Jury */}
         <section className="container py-20">
@@ -224,6 +201,59 @@ export default function Home() {
                   </li>
                 </ul>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Cost Comparison Section */}
+        <section className="container py-16">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                96% Cost Reduction
+              </h2>
+              <p className="text-muted-foreground">
+                Compare traditional support vs AI swarms
+              </p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="text-left py-4 px-4 font-semibold">Metric</th>
+                    <th className="text-center py-4 px-4 font-semibold text-muted-foreground">Traditional</th>
+                    <th className="text-center py-4 px-4 font-semibold text-primary">SWARM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-4 px-4">Cost per ticket</td>
+                    <td className="text-center py-4 px-4 text-muted-foreground">$15.00</td>
+                    <td className="text-center py-4 px-4 text-green-600 dark:text-green-400 font-semibold">$0.60</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-4 px-4">Response time</td>
+                    <td className="text-center py-4 px-4 text-muted-foreground">24-48h</td>
+                    <td className="text-center py-4 px-4 text-green-600 dark:text-green-400 font-semibold">&lt;1 min</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-4 px-4">Availability</td>
+                    <td className="text-center py-4 px-4 text-muted-foreground">8h/day</td>
+                    <td className="text-center py-4 px-4 text-green-600 dark:text-green-400 font-semibold">24/7</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-4 px-4">Platform fees</td>
+                    <td className="text-center py-4 px-4 text-muted-foreground">10-15%</td>
+                    <td className="text-center py-4 px-4 text-green-600 dark:text-green-400 font-semibold">0.1%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-4 px-4">Scalability</td>
+                    <td className="text-center py-4 px-4 text-muted-foreground">Limited</td>
+                    <td className="text-center py-4 px-4 text-green-600 dark:text-green-400 font-semibold">Unlimited</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
