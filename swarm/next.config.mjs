@@ -22,6 +22,10 @@ const nextConfig = {
       net: false,
       tls: false,
     };
+    
+    // Ignore optional dependencies that cause warnings
+    config.externals.push('pino-pretty', '@react-native-async-storage/async-storage');
+    
     return config;
   },
   
