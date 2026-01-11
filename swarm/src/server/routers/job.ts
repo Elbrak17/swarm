@@ -113,66 +113,71 @@ export const jobRouter = router({
       offset: z.number().min(0).optional(),
     }).optional())
     .query(async ({ input }) => {
-      const { 
-        status, 
-        clientAddr, 
-        swarmId,
-        minPayment,
-        orderBy = 'createdAt', 
-        order = 'desc', 
-        limit = 20, 
-        offset = 0 
-      } = input || {};
+      try {
+        const { 
+          status, 
+          clientAddr, 
+          swarmId,
+          minPayment,
+          orderBy = 'createdAt', 
+          order = 'desc', 
+          limit = 20, 
+          offset = 0 
+        } = input || {};
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const where: any = {};
-      
-      if (status) {
-        where.status = status;
-      }
-      
-      if (clientAddr) {
-        where.clientAddr = clientAddr.toLowerCase();
-      }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const where: any = {};
+        
+        if (status) {
+          where.status = status;
+        }
+        
+        if (clientAddr) {
+          where.clientAddr = clientAddr.toLowerCase();
+        }
 
-      if (swarmId) {
-        where.swarmId = swarmId;
-      }
+        if (swarmId) {
+          where.swarmId = swarmId;
+        }
 
-      if (minPayment) {
-        where.payment = {
-          gte: new Decimal(minPayment),
+        if (minPayment) {
+          where.payment = {
+            gte: new Decimal(minPayment),
+          };
+        }
+
+        const orderByField = orderBy as string;
+        const [jobs, total] = await Promise.all([
+          prisma.job.findMany({
+            where,
+            include: {
+              swarm: {
+                include: {
+                  agents: true,
+                },
+              },
+              bids: {
+                include: {
+                  swarm: true,
+                },
+              },
+            },
+            orderBy: { [orderByField]: order },
+            take: limit,
+            skip: offset,
+          }),
+          prisma.job.count({ where }),
+        ]);
+
+        return {
+          jobs,
+          total,
+          hasMore: offset + jobs.length < total,
         };
+      } catch (error) {
+        console.error('[Job] list error:', error);
+        return { jobs: [], total: 0, hasMore: false };
       }
-
-      const orderByField = orderBy as string;
-      const [jobs, total] = await Promise.all([
-        prisma.job.findMany({
-          where,
-          include: {
-            swarm: {
-              include: {
-                agents: true,
-              },
-            },
-            bids: {
-              include: {
-                swarm: true,
-              },
-            },
-          },
-          orderBy: { [orderByField]: order },
-          take: limit,
-          skip: offset,
-        }),
-        prisma.job.count({ where }),
-      ]);
-
-      return {
-        jobs,
-        total,
-        hasMore: offset + jobs.length < total,
-      };
     }),
 
   /**

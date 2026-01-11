@@ -97,41 +97,46 @@ export const swarmRouter = router({
       offset: z.number().min(0).optional(),
     }).optional())
     .query(async ({ input }) => {
-      const { owner, isActive, orderBy = 'createdAt', order = 'desc', limit = 20, offset = 0 } = input || {};
+      try {
+        const { owner, isActive, orderBy = 'createdAt', order = 'desc', limit = 20, offset = 0 } = input || {};
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const where: any = {};
-      
-      if (owner) {
-        where.owner = owner.toLowerCase();
-      }
-      
-      if (isActive !== undefined) {
-        where.isActive = isActive;
-      }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const where: any = {};
+        
+        if (owner) {
+          where.owner = owner.toLowerCase();
+        }
+        
+        if (isActive !== undefined) {
+          where.isActive = isActive;
+        }
 
-      const orderByField = orderBy as string;
-      const [swarms, total] = await Promise.all([
-        prisma.swarm.findMany({
-          where,
-          include: {
-            agents: true,
-            _count: {
-              select: { jobs: true, bids: true },
+        const orderByField = orderBy as string;
+        const [swarms, total] = await Promise.all([
+          prisma.swarm.findMany({
+            where,
+            include: {
+              agents: true,
+              _count: {
+                select: { jobs: true, bids: true },
+              },
             },
-          },
-          orderBy: { [orderByField]: order },
-          take: limit,
-          skip: offset,
-        }),
-        prisma.swarm.count({ where }),
-      ]);
+            orderBy: { [orderByField]: order },
+            take: limit,
+            skip: offset,
+          }),
+          prisma.swarm.count({ where }),
+        ]);
 
-      return {
-        swarms,
-        total,
-        hasMore: offset + swarms.length < total,
-      };
+        return {
+          swarms,
+          total,
+          hasMore: offset + swarms.length < total,
+        };
+      } catch (error) {
+        console.error('[Swarm] list error:', error);
+        return { swarms: [], total: 0, hasMore: false };
+      }
     }),
 
   /**

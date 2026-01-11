@@ -11,11 +11,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  let connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
     throw new Error('DATABASE_URL environment variable is not set');
   }
+
+  // Remove channel_binding parameter as it's not supported by @neondatabase/serverless
+  // This parameter can cause connection issues in serverless environments
+  connectionString = connectionString.replace(/[&?]channel_binding=[^&]*/g, '');
 
   // Create Neon pool and adapter
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

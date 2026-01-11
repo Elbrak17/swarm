@@ -115,34 +115,40 @@ export const bidRouter = router({
       order: z.enum(['asc', 'desc']).optional(),
     }))
     .query(async ({ input }) => {
-      const { jobId, orderBy = 'createdAt', order = 'desc' } = input;
+      try {
+        const { jobId, orderBy = 'createdAt', order = 'desc' } = input;
 
-      // Verify job exists
-      const job = await prisma.job.findUnique({
-        where: { id: jobId },
-      });
-
-      if (!job) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Job not found',
+        // Verify job exists
+        const job = await prisma.job.findUnique({
+          where: { id: jobId },
         });
-      }
 
-      const orderByField = orderBy as string;
-      const bids = await prisma.bid.findMany({
-        where: { jobId },
-        include: {
-          swarm: {
-            include: {
-              agents: true,
+        if (!job) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Job not found',
+          });
+        }
+
+        const orderByField = orderBy as string;
+        const bids = await prisma.bid.findMany({
+          where: { jobId },
+          include: {
+            swarm: {
+              include: {
+                agents: true,
+              },
             },
           },
-        },
-        orderBy: { [orderByField]: order },
-      });
+          orderBy: { [orderByField]: order },
+        });
 
-      return bids;
+        return bids;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Bid] listByJob error:', error);
+        return [];
+      }
     }),
 
   /**
@@ -158,46 +164,52 @@ export const bidRouter = router({
       offset: z.number().min(0).optional(),
     }))
     .query(async ({ input }) => {
-      const { swarmId, isAccepted, orderBy = 'createdAt', order = 'desc', limit = 20, offset = 0 } = input;
+      try {
+        const { swarmId, isAccepted, orderBy = 'createdAt', order = 'desc', limit = 20, offset = 0 } = input;
 
-      // Verify swarm exists
-      const swarm = await prisma.swarm.findUnique({
-        where: { id: swarmId },
-      });
-
-      if (!swarm) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Swarm not found',
+        // Verify swarm exists
+        const swarm = await prisma.swarm.findUnique({
+          where: { id: swarmId },
         });
+
+        if (!swarm) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Swarm not found',
+          });
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const where: any = { swarmId };
+        
+        if (isAccepted !== undefined) {
+          where.isAccepted = isAccepted;
+        }
+
+        const orderByField = orderBy as string;
+        const [bids, total] = await Promise.all([
+          prisma.bid.findMany({
+            where,
+            include: {
+              job: true,
+            },
+            orderBy: { [orderByField]: order },
+            take: limit,
+            skip: offset,
+          }),
+          prisma.bid.count({ where }),
+        ]);
+
+        return {
+          bids,
+          total,
+          hasMore: offset + bids.length < total,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Bid] listBySwarm error:', error);
+        return { bids: [], total: 0, hasMore: false };
       }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const where: any = { swarmId };
-      
-      if (isAccepted !== undefined) {
-        where.isAccepted = isAccepted;
-      }
-
-      const orderByField = orderBy as string;
-      const [bids, total] = await Promise.all([
-        prisma.bid.findMany({
-          where,
-          include: {
-            job: true,
-          },
-          orderBy: { [orderByField]: order },
-          take: limit,
-          skip: offset,
-        }),
-        prisma.bid.count({ where }),
-      ]);
-
-      return {
-        bids,
-        total,
-        hasMore: offset + bids.length < total,
-      };
     }),
 
   /**
