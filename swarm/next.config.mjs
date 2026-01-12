@@ -1,5 +1,3 @@
-import webpack from 'webpack';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable React strict mode for better development experience
@@ -17,7 +15,7 @@ const nextConfig = {
   },
   
   // Webpack configuration for Web3 compatibility
-  webpack: (config) => {
+  webpack: (config, { webpack }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
