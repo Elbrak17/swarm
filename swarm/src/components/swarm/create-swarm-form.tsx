@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useWalletOrDemo } from '@/hooks/use-wallet-or-demo';
 import { trpc } from '@/lib/trpc';
 import { parseRevertReason } from '@/lib/errors';
 import { SWARM_REGISTRY_ADDRESS, AgentRole } from '@/lib/constants';
@@ -71,6 +72,7 @@ function isValidAddress(address: string): boolean {
 export function CreateSwarmForm() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
+  const { isDemoMode, requireRealWallet } = useWalletOrDemo();
   const { toast } = useToast();
   
   // Form state
@@ -177,6 +179,11 @@ export function CreateSwarmForm() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for demo mode first
+    if (!requireRealWallet('Registering a swarm')) {
+      return;
+    }
     
     if (!isConnected || !address) {
       toast({
