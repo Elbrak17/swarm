@@ -1,3 +1,5 @@
+import webpack from 'webpack';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable React strict mode for better development experience
@@ -23,8 +25,15 @@ const nextConfig = {
       tls: false,
     };
     
-    // Ignore optional dependencies that cause warnings
-    config.externals.push('pino-pretty', '@react-native-async-storage/async-storage');
+    // Ignore optional dependencies that cause warnings with MetaMask SDK and WalletConnect
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^@react-native-async-storage\/async-storage$/,
+      }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^pino-pretty$/,
+      })
+    );
     
     return config;
   },
