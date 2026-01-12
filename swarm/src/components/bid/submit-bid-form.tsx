@@ -16,6 +16,7 @@ import { MNEE_DECIMALS, MNEE_SYMBOL } from '@/lib/constants';
 interface SubmitBidFormProps {
   jobId: string;
   jobPayment: string; // Wei as string
+  isDemoJob?: boolean; // Flag to indicate if this is a demo job
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -32,12 +33,17 @@ interface FormErrors {
  * Submit Bid Form Component
  * 
  * Allows swarm owners to submit bids on open jobs.
+ * Supports both real and demo mode.
  * Requirements: 4.1, 4.5
  */
-export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: SubmitBidFormProps) {
-  const { address, isConnected } = useAccount();
-  const { requireRealWallet } = useWalletOrDemo();
+export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCancel }: SubmitBidFormProps) {
+  const { address: realAddress, isConnected: isReallyConnected } = useAccount();
+  const { isDemoMode, address: demoAddress, createDemoBid, getDemoSwarmsByOwner } = useWalletOrDemo();
   const { toast } = useToast();
+  
+  // Effective address (real or demo)
+  const address = isReallyConnected ? realAddress : demoAddress;
+  const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
   const [selectedSwarmId, setSelectedSwarmId] = useState('');
@@ -47,19 +53,19 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch user's swarms
+  // Fetch user's swarms (only for real mode)
   const { data: swarmsData, isLoading: isLoadingSwarms } = trpc.swarm.list.useQuery(
-    { owner: address?.toLowerCase(), isActive: true },
-    { enabled: !!address }
+    { owner: realAddress?.toLowerCase(), isActive: true },
+    { enabled: !!realAddress && isReallyConnected && !isDemoMode }
   );
 
-  // Fetch existing bids for this job to check for duplicates
+  // Fetch existing bids for this job (only for real mode)
   const { data: existingBids } = trpc.bid.listByJob.useQuery(
     { jobId },
-    { enabled: !!jobId }
+    { enabled: !!jobId && !isDemoMode && !isDemoJob }
   );
 
-  // Create bid mutation
+  // Create bid mutation (only for real mode)
   const createBidMutation = trpc.bid.create.useMutation({
     onSuccess: () => {
       toast({
@@ -78,10 +84,20 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
     },
   });
 
-  const userSwarms = swarmsData?.swarms || [];
+  // Get swarms based on mode
+  const userSwarms = isDemoMode 
+    ? getDemoSwarmsByOwner(demoAddress || '')
+    : (swarmsData?.swarms || []);
+
+  // Loading state - in demo mode, we're never loading
+  const isLoadingSwarmsEffective = isDemoMode ? false : isLoadingSwarms;
 
   // Get swarms that haven't already bid on this job (Requirement 4.5)
   const availableSwarms = userSwarms.filter((swarm) => {
+    if (isDemoMode || isDemoJob) {
+      // For demo jobs, check demo job bids
+      return true; // Demo swarms can always bid for simplicity
+    }
     const hasBid = existingBids?.some(
       (bid) => bid.swarmId === swarm.id
     );
@@ -141,11 +157,6 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for demo mode first
-    if (!requireRealWallet('Submitting a bid')) {
-      return;
-    }
-    
     if (!isConnected || !address) {
       toast({
         title: 'Wallet not connected',
@@ -164,6 +175,34 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
     // Convert price to wei
     const priceWei = parseUnits(priceAmount, MNEE_DECIMALS);
 
+    // DEMO MODE: Create bid locally
+    if (isDemoMode || isDemoJob) {
+      try {
+        await createDemoBid({
+          jobId,
+          swarmId: selectedSwarmId,
+          price: priceWei.toString(),
+          estimatedTime: parseInt(estimatedTime, 10),
+          message: message.trim() || undefined,
+        });
+        
+        toast({
+          title: 'Enchère soumise! (Démo)',
+          description: 'Votre enchère a été enregistrée.',
+        });
+        onSuccess?.();
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Erreur lors de la soumission',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // REAL MODE: Submit via tRPC
     createBidMutation.mutate({
       jobId,
       swarmId: selectedSwarmId,
@@ -174,7 +213,7 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
   };
 
   // Check if user has any swarms
-  if (!isLoadingSwarms && userSwarms.length === 0) {
+  if (!isLoadingSwarmsEffective && userSwarms.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -198,7 +237,7 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
   }
 
   // Check if all user's swarms have already bid
-  if (!isLoadingSwarms && availableSwarms.length === 0 && userSwarms.length > 0) {
+  if (!isLoadingSwarmsEffective && availableSwarms.length === 0 && userSwarms.length > 0) {
     return (
       <Card>
         <CardHeader>
@@ -230,7 +269,7 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
             <Label htmlFor="swarm" className={errors.swarmId ? 'text-destructive' : ''}>
               Select Swarm *
             </Label>
-            {isLoadingSwarms ? (
+            {isLoadingSwarmsEffective ? (
               <div className="h-10 bg-muted animate-pulse rounded-md" />
             ) : (
               <select
@@ -361,7 +400,7 @@ export function SubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: Submit
             <Button 
               type="submit" 
               className="flex-1" 
-              disabled={!isConnected || isSubmitting || isLoadingSwarms}
+              disabled={!isConnected || isSubmitting || isLoadingSwarmsEffective}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Bid'}
             </Button>

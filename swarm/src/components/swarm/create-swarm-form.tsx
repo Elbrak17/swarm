@@ -71,9 +71,13 @@ function isValidAddress(address: string): boolean {
 
 export function CreateSwarmForm() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
-  const { requireRealWallet } = useWalletOrDemo();
+  const { address: realAddress, isConnected: isReallyConnected } = useAccount();
+  const { isDemoMode, address: demoAddress, createDemoSwarm } = useWalletOrDemo();
   const { toast } = useToast();
+  
+  // Effective address (real or demo)
+  const address = isReallyConnected ? realAddress : demoAddress;
+  const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
   const [name, setName] = useState('');
@@ -180,24 +184,10 @@ export function CreateSwarmForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for demo mode first
-    if (!requireRealWallet('Registering a swarm')) {
-      return;
-    }
-    
     if (!isConnected || !address) {
       toast({
         title: 'Wallet not connected',
         description: 'Please connect your wallet to register a swarm.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!SWARM_REGISTRY_ADDRESS) {
-      toast({
-        title: 'Configuration error',
-        description: 'Swarm registry contract address not configured.',
         variant: 'destructive',
       });
       return;
@@ -209,6 +199,48 @@ export function CreateSwarmForm() {
 
     // Filter out empty agent addresses
     const validAgents = agents.filter(a => a.address.trim() !== '');
+
+    // DEMO MODE: Create swarm locally
+    if (isDemoMode) {
+      setTxStep('registering');
+      try {
+        await createDemoSwarm({
+          name: name.trim(),
+          description: description.trim(),
+          agents: validAgents.map(a => ({
+            address: a.address,
+            role: a.role as 'ROUTER' | 'WORKER' | 'QA',
+          })),
+        });
+        
+        setTxStep('complete');
+        toast({
+          title: 'Swarm enregistré avec succès! (Démo)',
+          description: 'Votre swarm peut maintenant enchérir sur des jobs.',
+        });
+        // Redirect to marketplace
+        router.push(`/marketplace?demo=true`);
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement du swarm',
+          variant: 'destructive',
+        });
+        setTxStep('idle');
+      }
+      return;
+    }
+
+    // REAL MODE: On-chain transaction
+    if (!SWARM_REGISTRY_ADDRESS) {
+      toast({
+        title: 'Configuration error',
+        description: 'Swarm registry contract address not configured.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const agentAddresses = validAgents.map(a => a.address as `0x${string}`);
 
     // Start the transaction flow

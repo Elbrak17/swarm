@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatUnits } from 'viem';
+import { Eye } from 'lucide-react';
 
 interface SwarmCardProps {
   swarm: {
     id: string;
     name: string;
     description: string;
-    budget: string | { toString(): string };
+    budget?: string | { toString(): string };
     rating: number;
     isActive: boolean;
     agents: Array<{
@@ -22,6 +23,7 @@ interface SwarmCardProps {
       bids: number;
     };
   };
+  isDemo?: boolean;
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -52,10 +54,10 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export function SwarmCard({ swarm }: SwarmCardProps) {
-  const budgetValue = typeof swarm.budget === 'string' 
-    ? swarm.budget 
-    : swarm.budget.toString();
+export function SwarmCard({ swarm, isDemo }: SwarmCardProps) {
+  const budgetValue = swarm.budget 
+    ? (typeof swarm.budget === 'string' ? swarm.budget : swarm.budget.toString())
+    : '0';
   
   const formattedBudget = parseFloat(formatUnits(BigInt(budgetValue), 18)).toFixed(2);
   
@@ -65,12 +67,20 @@ export function SwarmCard({ swarm }: SwarmCardProps) {
     return acc;
   }, {} as Record<string, number>);
 
+  // For demo swarms, link to a special demo swarm page or handle differently
+  const href = isDemo ? `/swarm/demo/${swarm.id}` : `/swarm/${swarm.id}`;
+
   return (
-    <Link href={`/swarm/${swarm.id}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+    <Link href={href}>
+      <Card className={`h-full hover:shadow-md transition-shadow cursor-pointer ${isDemo ? 'border-amber-300 dark:border-amber-700' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg">{swarm.name}</CardTitle>
+            <div className="flex items-center gap-2">
+              {isDemo && (
+                <Eye className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              )}
+              <CardTitle className="text-lg">{swarm.name}</CardTitle>
+            </div>
             {!swarm.isActive && (
               <Badge variant="secondary">Inactive</Badge>
             )}

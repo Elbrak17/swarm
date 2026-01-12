@@ -1,8 +1,7 @@
 'use client';
 
 import { useAccount } from 'wagmi';
-import { useDemoStore } from '@/store/demo-store';
-import { useToast } from '@/hooks/use-toast';
+import { useDemoStore, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
 
 /**
  * Hook that provides wallet state, supporting both real wallets and demo mode
@@ -10,34 +9,54 @@ import { useToast } from '@/hooks/use-toast';
  */
 export function useWalletOrDemo() {
   const { address: realAddress, isConnected: isReallyConnected } = useAccount();
-  const { isDemoMode, demoAddress, demoBalance } = useDemoStore();
-  const { toast } = useToast();
+  const { 
+    isDemoMode, 
+    demoAddress, 
+    demoBalance,
+    demoSwarms,
+    demoJobs,
+    createDemoSwarm,
+    createDemoJob,
+    createDemoBid,
+    acceptDemoBid,
+    startDemoJobExecution,
+    completeDemoJob,
+    getDemoSwarm,
+    getDemoJob,
+    getDemoSwarmsByOwner,
+    getOpenDemoJobs,
+    getDemoJobsByClient,
+  } = useDemoStore();
 
-  // Effective connection state
+  // Effective connection state - demo mode counts as "connected"
   const isConnected = isReallyConnected || isDemoMode;
   const address = isReallyConnected ? realAddress : (isDemoMode ? demoAddress as `0x${string}` : undefined);
   const balance = isDemoMode ? demoBalance : undefined;
 
   /**
-   * Guard function for actions that require a real wallet
-   * Shows a toast and returns false if in demo mode
+   * Check if user can perform real on-chain actions
    */
-  const requireRealWallet = (actionName: string = 'This action'): boolean => {
-    if (isDemoMode && !isReallyConnected) {
-      toast({
-        title: 'Real Wallet Required',
-        description: `${actionName} requires a connected wallet. Please connect your wallet to continue.`,
-        variant: 'destructive',
-      });
-      return false;
+  const canPerformOnChainActions = isReallyConnected && !isDemoMode;
+
+  /**
+   * Get user's swarms (demo or real based on mode)
+   */
+  const getUserSwarms = () => {
+    if (isDemoMode) {
+      return getDemoSwarmsByOwner(DEMO_WALLET_ADDRESS);
     }
-    return true;
+    return [];
   };
 
   /**
-   * Check if user can perform on-chain actions
+   * Get user's jobs (demo or real based on mode)
    */
-  const canPerformOnChainActions = isReallyConnected && !isDemoMode;
+  const getUserJobs = () => {
+    if (isDemoMode) {
+      return getDemoJobsByClient(DEMO_WALLET_ADDRESS);
+    }
+    return [];
+  };
 
   return {
     // Connection state
@@ -50,7 +69,25 @@ export function useWalletOrDemo() {
     isReallyConnected,
     canPerformOnChainActions,
     
-    // Guard function
-    requireRealWallet,
+    // Demo data
+    demoSwarms,
+    demoJobs,
+    
+    // Demo actions
+    createDemoSwarm,
+    createDemoJob,
+    createDemoBid,
+    acceptDemoBid,
+    startDemoJobExecution,
+    completeDemoJob,
+    
+    // Demo getters
+    getDemoSwarm,
+    getDemoJob,
+    getDemoSwarmsByOwner,
+    getOpenDemoJobs,
+    getDemoJobsByClient,
+    getUserSwarms,
+    getUserJobs,
   };
 }

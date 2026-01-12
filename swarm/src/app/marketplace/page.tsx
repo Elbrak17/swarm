@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout';
 import { JobCard } from '@/components/marketplace/job-card';
 import { SwarmCard } from '@/components/marketplace/swarm-card';
@@ -12,6 +12,7 @@ import { JobCardSkeleton, SwarmCardSkeleton } from '@/components/ui/loading';
 import { AnimatedContainer, StaggerList, StaggerItem } from '@/components/ui/page-transition';
 import { trpc } from '@/lib/trpc';
 import { JobStatus } from '@/lib/constants';
+import { useWalletOrDemo } from '@/hooks/use-wallet-or-demo';
 import Link from 'next/link';
 
 type Tab = 'jobs' | 'swarms';
@@ -21,18 +22,79 @@ export default function MarketplacePage() {
   const [activeTab, setActiveTab] = useState<Tab>('jobs');
   const [statusFilter, setStatusFilter] = useState<JobStatus | null>(null);
   const [swarmSort, setSwarmSort] = useState<SortOrder>('rating');
+  
+  // Demo mode support
+  const { isDemoMode, demoJobs, demoSwarms } = useWalletOrDemo();
 
-  // Fetch jobs
+  // Fetch jobs (only when not in demo mode)
   const { data: jobsData, isLoading: jobsLoading } = trpc.job.list.useQuery(
     statusFilter ? { status: statusFilter } : undefined,
-    { enabled: activeTab === 'jobs' }
+    { enabled: activeTab === 'jobs' && !isDemoMode }
   );
 
-  // Fetch swarms
+  // Fetch swarms (only when not in demo mode)
   const { data: swarmsData, isLoading: swarmsLoading } = trpc.swarm.list.useQuery(
     { orderBy: swarmSort, order: 'desc', isActive: true },
-    { enabled: activeTab === 'swarms' }
+    { enabled: activeTab === 'swarms' && !isDemoMode }
   );
+
+  // Combine real and demo data
+  const displayJobs = useMemo(() => {
+    if (isDemoMode) {
+      // In demo mode, show only demo jobs, filtered by status
+      let jobs = demoJobs.map(dj => ({
+        id: dj.id,
+        title: dj.title,
+        description: dj.description,
+        requirements: dj.requirements,
+        payment: dj.payment,
+        status: dj.status,
+        clientAddr: dj.clientAddr,
+        createdAt: dj.createdAt,
+        _count: { bids: dj.bids.length },
+        isDemo: true,
+      }));
+      
+      if (statusFilter) {
+        jobs = jobs.filter(j => j.status === statusFilter);
+      }
+      
+      return jobs;
+    }
+    return jobsData?.jobs || [];
+  }, [isDemoMode, demoJobs, jobsData, statusFilter]);
+
+  const displaySwarms = useMemo(() => {
+    if (isDemoMode) {
+      // In demo mode, show only demo swarms
+      const swarms = demoSwarms.map(ds => ({
+        id: ds.id,
+        name: ds.name,
+        description: ds.description,
+        owner: ds.owner,
+        rating: ds.rating,
+        isActive: ds.isActive,
+        createdAt: ds.createdAt,
+        agents: ds.agents,
+        isDemo: true,
+      }));
+      
+      // Sort by rating or createdAt
+      if (swarmSort === 'rating') {
+        swarms.sort((a, b) => b.rating - a.rating);
+      } else {
+        swarms.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+      
+      return swarms;
+    }
+    return swarmsData?.swarms || [];
+  }, [isDemoMode, demoSwarms, swarmsData, swarmSort]);
+
+  const totalJobs = isDemoMode ? displayJobs.length : (jobsData?.total || 0);
+  const totalSwarms = isDemoMode ? displaySwarms.length : (swarmsData?.total || 0);
+  const isJobsLoading = !isDemoMode && jobsLoading;
+  const isSwarmsLoading = !isDemoMode && swarmsLoading;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -71,11 +133,9 @@ export default function MarketplacePage() {
             }`}
           >
             Jobs
-            {jobsData && (
-              <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded-full">
-                {jobsData.total}
-              </span>
-            )}
+            <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded-full">
+              {totalJobs}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('swarms')}
@@ -86,11 +146,9 @@ export default function MarketplacePage() {
             }`}
           >
             Swarms
-            {swarmsData && (
-              <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded-full">
-                {swarmsData.total}
-              </span>
-            )}
+            <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded-full">
+              {totalSwarms}
+            </span>
           </button>
         </div>
 
@@ -123,12 +181,12 @@ export default function MarketplacePage() {
           <div className="lg:col-span-3">
             {activeTab === 'jobs' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {jobsLoading ? (
+                {isJobsLoading ? (
                   // Loading skeletons with proper job card skeleton
                   Array.from({ length: 6 }).map((_, i) => (
                     <JobCardSkeleton key={i} />
                   ))
-                ) : jobsData?.jobs.length === 0 ? (
+                ) : displayJobs.length === 0 ? (
                   <AnimatedContainer variant="fade" className="col-span-full text-center py-12">
                     <p className="text-muted-foreground">No jobs found</p>
                     <Link href="/job/new">
@@ -139,9 +197,9 @@ export default function MarketplacePage() {
                   </AnimatedContainer>
                 ) : (
                   <StaggerList className="contents">
-                    {jobsData?.jobs.map((job) => (
+                    {displayJobs.map((job) => (
                       <StaggerItem key={job.id}>
-                        <JobCard job={job} />
+                        <JobCard job={job} isDemo={'isDemo' in job && job.isDemo} />
                       </StaggerItem>
                     ))}
                   </StaggerList>
@@ -151,12 +209,12 @@ export default function MarketplacePage() {
 
             {activeTab === 'swarms' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {swarmsLoading ? (
+                {isSwarmsLoading ? (
                   // Loading skeletons with proper swarm card skeleton
                   Array.from({ length: 6 }).map((_, i) => (
                     <SwarmCardSkeleton key={i} />
                   ))
-                ) : swarmsData?.swarms.length === 0 ? (
+                ) : displaySwarms.length === 0 ? (
                   <AnimatedContainer variant="fade" className="col-span-full text-center py-12">
                     <p className="text-muted-foreground">No swarms found</p>
                     <Link href="/swarm/new">
@@ -167,9 +225,9 @@ export default function MarketplacePage() {
                   </AnimatedContainer>
                 ) : (
                   <StaggerList className="contents">
-                    {swarmsData?.swarms.map((swarm) => (
+                    {displaySwarms.map((swarm) => (
                       <StaggerItem key={swarm.id}>
-                        <SwarmCard swarm={swarm} />
+                        <SwarmCard swarm={swarm} isDemo={'isDemo' in swarm && swarm.isDemo} />
                       </StaggerItem>
                     ))}
                   </StaggerList>

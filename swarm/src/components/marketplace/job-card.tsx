@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { JobStatus } from '@/lib/constants';
 import { formatUnits } from 'viem';
 import { formatDistanceToNow } from '@/lib/date-utils';
+import { Eye } from 'lucide-react';
 
 interface JobCardProps {
   job: {
@@ -16,10 +17,12 @@ interface JobCardProps {
     status: string;
     createdAt: Date | string;
     bids?: Array<{ id: string }>;
+    _count?: { bids: number };
     swarm?: {
       name: string;
     } | null;
   };
+  isDemo?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -30,20 +33,29 @@ const statusColors: Record<string, string> = {
   [JobStatus.DISPUTED]: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
-export function JobCard({ job }: JobCardProps) {
+export function JobCard({ job, isDemo }: JobCardProps) {
   const paymentValue = typeof job.payment === 'string' 
     ? job.payment 
     : job.payment.toString();
   
   const formattedPayment = parseFloat(formatUnits(BigInt(paymentValue), 18)).toFixed(2);
   const createdAt = typeof job.createdAt === 'string' ? new Date(job.createdAt) : job.createdAt;
+  const bidCount = job._count?.bids ?? job.bids?.length ?? 0;
+
+  // For demo jobs, link to a special demo job page or handle differently
+  const href = isDemo ? `/job/demo/${job.id}` : `/job/${job.id}`;
 
   return (
-    <Link href={`/job/${job.id}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+    <Link href={href}>
+      <Card className={`h-full hover:shadow-md transition-shadow cursor-pointer ${isDemo ? 'border-amber-300 dark:border-amber-700' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg line-clamp-2">{job.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              {isDemo && (
+                <Eye className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              )}
+              <CardTitle className="text-lg line-clamp-2">{job.title}</CardTitle>
+            </div>
             <Badge className={statusColors[job.status] || 'bg-gray-100'}>
               {job.status}
             </Badge>
@@ -65,8 +77,8 @@ export function JobCard({ job }: JobCardProps) {
           </div>
           
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            {job.bids && job.bids.length > 0 && (
-              <span>{job.bids.length} bid{job.bids.length !== 1 ? 's' : ''}</span>
+            {bidCount > 0 && (
+              <span>{bidCount} bid{bidCount !== 1 ? 's' : ''}</span>
             )}
             <span>{formatDistanceToNow(createdAt)}</span>
           </div>

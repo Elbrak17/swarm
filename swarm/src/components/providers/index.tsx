@@ -6,6 +6,7 @@ import { trpc, createTRPCClient } from '@/lib/trpc';
 import { Web3Provider } from './web3-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { DemoBanner } from '@/components/demo';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ interface ProvidersProps {
  * - tRPC for API calls
  * - Web3 (Wagmi + RainbowKit) for wallet connection
  * - Toast notifications
+ * - Demo mode banner
  * 
  * Requirements: 12.1, 12.2 - Error handling with user-friendly messages
  */
@@ -41,6 +43,7 @@ export function Providers({ children }: ProvidersProps) {
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <Web3Provider>
+            <DemoBanner />
             {children}
             <Toaster />
           </Web3Provider>

@@ -81,9 +81,13 @@ interface FormErrors {
 
 export function CreateJobForm() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
-  const { requireRealWallet } = useWalletOrDemo();
+  const { address: realAddress, isConnected: isReallyConnected } = useAccount();
+  const { isDemoMode, address: demoAddress, balance: demoBalance, createDemoJob } = useWalletOrDemo();
   const { toast } = useToast();
+  
+  // Effective address (real or demo)
+  const address = isReallyConnected ? realAddress : demoAddress;
+  const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
   const [title, setTitle] = useState('');
@@ -96,30 +100,30 @@ export function CreateJobForm() {
   // tRPC mutation for saving job to database
   const createJobMutation = trpc.job.create.useMutation();
 
-  // Read MNEE balance
+  // Read MNEE balance (only for real wallet)
   const { data: mneeBalance } = useReadContract({
     address: MNEE_CONTRACT_ADDRESS,
     abi: MNEE_ABI,
     functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    query: { enabled: !!address },
+    args: realAddress ? [realAddress] : undefined,
+    query: { enabled: !!realAddress && isReallyConnected && !isDemoMode },
   });
 
-  // Read current allowance
+  // Read current allowance (only for real wallet)
   const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
     address: MNEE_CONTRACT_ADDRESS,
     abi: MNEE_ABI,
     functionName: 'allowance',
-    args: address && JOB_ESCROW_ADDRESS ? [address, JOB_ESCROW_ADDRESS] : undefined,
-    query: { enabled: !!address && !!JOB_ESCROW_ADDRESS },
+    args: realAddress && JOB_ESCROW_ADDRESS ? [realAddress, JOB_ESCROW_ADDRESS] : undefined,
+    query: { enabled: !!realAddress && !!JOB_ESCROW_ADDRESS && isReallyConnected && !isDemoMode },
   });
 
-  // Read next job ID (to predict the on-chain ID)
+  // Read next job ID (only for real wallet)
   const { data: nextJobId, refetch: refetchNextJobId } = useReadContract({
     address: JOB_ESCROW_ADDRESS,
     abi: JOB_ESCROW_ABI,
     functionName: 'nextJobId',
-    query: { enabled: !!JOB_ESCROW_ADDRESS },
+    query: { enabled: !!JOB_ESCROW_ADDRESS && isReallyConnected && !isDemoMode },
   });
 
   // Approve MNEE spending
@@ -151,16 +155,17 @@ export function CreateJobForm() {
   // Calculate payment in wei
   const paymentWei = paymentAmount ? parseUnits(paymentAmount, MNEE_DECIMALS) : BigInt(0);
 
-  // Check if approval is needed
-  const needsApproval = currentAllowance !== undefined && paymentWei > currentAllowance;
+  // Check if approval is needed (only for real wallet)
+  const needsApproval = !isDemoMode && currentAllowance !== undefined && paymentWei > currentAllowance;
 
-  // Format balance for display
-  const formattedBalance = mneeBalance 
-    ? formatUnits(mneeBalance, MNEE_DECIMALS) 
+  // Format balance for display (demo or real)
+  const effectiveBalance = isDemoMode ? BigInt(demoBalance || '0') : mneeBalance;
+  const formattedBalance = effectiveBalance 
+    ? formatUnits(effectiveBalance, MNEE_DECIMALS) 
     : '0';
 
   // Check if user has sufficient balance
-  const hasSufficientBalance = mneeBalance !== undefined && paymentWei <= mneeBalance;
+  const hasSufficientBalance = effectiveBalance !== undefined && paymentWei <= effectiveBalance;
 
   /**
    * Validate form fields
@@ -206,11 +211,6 @@ export function CreateJobForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for demo mode first
-    if (!requireRealWallet('Posting a job')) {
-      return;
-    }
-    
     if (!isConnected || !address) {
       toast({
         title: 'Wallet not connected',
@@ -219,17 +219,47 @@ export function CreateJobForm() {
       });
       return;
     }
+    
+    if (!validateForm()) {
+      return;
+    }
 
+    // DEMO MODE: Create job locally
+    if (isDemoMode) {
+      setTxStep('creating');
+      try {
+        await createDemoJob({
+          title: title.trim(),
+          description: description.trim(),
+          requirements: requirements.trim() || undefined,
+          payment: paymentWei.toString(),
+        });
+        
+        setTxStep('complete');
+        toast({
+          title: 'Job créé avec succès! (Démo)',
+          description: 'Votre job est maintenant visible sur le marketplace.',
+        });
+        // Redirect to marketplace with demo job visible
+        router.push(`/marketplace?demo=true`);
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Erreur lors de la création du job',
+          variant: 'destructive',
+        });
+        setTxStep('idle');
+      }
+      return;
+    }
+
+    // REAL MODE: On-chain transaction
     if (!JOB_ESCROW_ADDRESS) {
       toast({
         title: 'Configuration error',
         description: 'Job escrow contract address not configured.',
         variant: 'destructive',
       });
-      return;
-    }
-    
-    if (!validateForm()) {
       return;
     }
 
