@@ -1,7 +1,7 @@
 'use client';
 
 import { useAccount } from 'wagmi';
-import { useDemoStore, DEMO_WALLET_ADDRESS, DEMO_MNEE_BALANCE } from '@/store/demo-store';
+import { useDemoStore } from '@/store/demo-store';
 import { useToast } from '@/hooks/use-toast';
 
 /**

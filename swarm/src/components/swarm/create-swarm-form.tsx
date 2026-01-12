@@ -72,7 +72,7 @@ function isValidAddress(address: string): boolean {
 export function CreateSwarmForm() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
-  const { isDemoMode, requireRealWallet } = useWalletOrDemo();
+  const { requireRealWallet } = useWalletOrDemo();
   const { toast } = useToast();
   
   // Form state
