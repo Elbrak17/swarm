@@ -6,7 +6,7 @@ import { trpc, createTRPCClient } from '@/lib/trpc';
 import { Web3Provider } from './web3-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { DemoBanner } from '@/components/demo';
+import { DemoBanner, DemoOnboarding } from '@/components/demo';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -44,6 +44,7 @@ export function Providers({ children }: ProvidersProps) {
         <QueryClientProvider client={queryClient}>
           <Web3Provider>
             <DemoBanner />
+            <DemoOnboarding />
             {children}
             <Toaster />
           </Web3Provider>

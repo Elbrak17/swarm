@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useBalance, useSwitchChain, useChainId } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
@@ -7,20 +8,19 @@ import { Button } from '@/components/ui/button';
 import { MNEE_CONTRACT_ADDRESS, SEPOLIA_CHAIN_ID, MNEE_DECIMALS } from '@/lib/constants';
 import { formatUnits } from 'viem';
 import { useDemoStore, DEMO_MNEE_BALANCE } from '@/store/demo-store';
-import { Eye } from 'lucide-react';
+import { Eye, Wallet, Sparkles, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 /**
- * WalletButton component provides wallet connection functionality
- * - Displays connect button when disconnected
- * - Shows address and MNEE balance when connected
- * - Prompts network switch when on wrong chain
- * - Supports demo mode for users without wallets
+ * Premium WalletButton component
+ * Mobile-first design with demo mode support
  */
 export function WalletButton() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const { isDemoMode, demoAddress, enableDemoMode, disableDemoMode } = useDemoStore();
+  const [showDemoTooltip, setShowDemoTooltip] = useState(false);
   
   // Fetch MNEE token balance
   const { data: mneeBalance, isLoading: isBalanceLoading } = useBalance({
@@ -48,36 +48,56 @@ export function WalletButton() {
     }
   };
 
-  // If in demo mode, show demo wallet UI
+  // If in demo mode, show premium demo wallet UI
   if (isDemoMode && !isConnected) {
-    const formattedBalance = parseFloat(formatUnits(BigInt(DEMO_MNEE_BALANCE), MNEE_DECIMALS)).toFixed(0);
+    const formattedBalance = parseFloat(formatUnits(BigInt(DEMO_MNEE_BALANCE), MNEE_DECIMALS)).toLocaleString('fr-FR', {
+      maximumFractionDigits: 0
+    });
     const shortAddress = `${demoAddress.slice(0, 6)}...${demoAddress.slice(-4)}`;
     
     return (
-      <div className="flex items-center gap-2">
-        {/* Demo indicator */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-md">
-          <Eye className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-          <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Demo</span>
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Demo Badge - Compact on mobile */}
+        <div className="relative">
+          <div className={cn(
+            "flex items-center gap-1 px-2 py-1.5 rounded-lg",
+            "bg-gradient-to-r from-amber-500/10 to-orange-500/10",
+            "border border-amber-500/30",
+            "transition-all duration-200"
+          )}>
+            <div className="relative">
+              <Eye className="w-3.5 h-3.5 text-amber-500" />
+              <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-amber-400 animate-pulse" />
+            </div>
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 hidden xs:inline">
+              Démo
+            </span>
+          </div>
         </div>
         
-        {/* Demo MNEE Balance */}
-        <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-secondary rounded-md">
-          <span className="text-sm font-medium">
-            {formattedBalance} MNEE
-          </span>
-        </div>
-
-        {/* Demo Address Button */}
-        <Button
+        {/* Balance + Address - Combined on mobile */}
+        <button
           onClick={handleDemoToggle}
-          variant="outline"
-          size="sm"
-          className="font-mono"
-          title="Exit demo mode"
+          className={cn(
+            "flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg",
+            "bg-secondary hover:bg-secondary/80",
+            "border border-border",
+            "transition-all duration-200 active:scale-95"
+          )}
         >
-          {shortAddress}
-        </Button>
+          <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-sm tabular-nums">
+              {formattedBalance}
+            </span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">MNEE</span>
+          </div>
+          <div className="hidden sm:block w-px h-4 bg-border" />
+          <span className="font-mono text-xs text-muted-foreground hidden sm:inline">
+            {shortAddress}
+          </span>
+          <ChevronDown className="w-3 h-3 text-muted-foreground" />
+        </button>
       </div>
     );
   }
@@ -85,18 +105,15 @@ export function WalletButton() {
   // If on wrong network, show switch prompt
   if (isWrongNetwork) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-yellow-600 dark:text-yellow-400">
-          Wrong Network
-        </span>
-        <Button 
-          onClick={handleSwitchNetwork}
-          variant="outline"
-          size="sm"
-        >
-          Switch to Sepolia
-        </Button>
-      </div>
+      <Button 
+        onClick={handleSwitchNetwork}
+        variant="outline"
+        size="sm"
+        className="gap-2 border-yellow-500/50 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10"
+      >
+        <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+        <span className="hidden sm:inline">Changer vers</span> Sepolia
+      </Button>
     );
   }
 
@@ -127,57 +144,110 @@ export function WalletButton() {
             {(() => {
               if (!connected) {
                 return (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={openConnectModal} variant="default">
-                      Connect Wallet
-                    </Button>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    {/* Connect Wallet Button */}
                     <Button 
-                      onClick={handleDemoToggle} 
-                      variant="ghost" 
+                      onClick={openConnectModal} 
                       size="sm"
-                      className="text-muted-foreground"
-                      title="Try the platform without a wallet"
+                      className="gap-2 px-3 sm:px-4"
                     >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Demo
+                      <Wallet className="w-4 h-4" />
+                      <span className="hidden sm:inline">Connecter</span>
+                      <span className="sm:hidden">Wallet</span>
                     </Button>
+                    
+                    {/* Demo Button - Premium style */}
+                    <div className="relative">
+                      <Button 
+                        onClick={handleDemoToggle}
+                        onMouseEnter={() => setShowDemoTooltip(true)}
+                        onMouseLeave={() => setShowDemoTooltip(false)}
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "gap-1.5 px-2.5 sm:px-3",
+                          "border-amber-500/30 hover:border-amber-500/50",
+                          "hover:bg-amber-500/10",
+                          "transition-all duration-200"
+                        )}
+                      >
+                        <div className="relative">
+                          <Eye className="w-4 h-4 text-amber-500" />
+                          <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-amber-400" />
+                        </div>
+                        <span className="text-amber-600 dark:text-amber-400 font-medium hidden sm:inline">
+                          Démo
+                        </span>
+                      </Button>
+                      
+                      {/* Tooltip */}
+                      {showDemoTooltip && (
+                        <div className={cn(
+                          "absolute top-full right-0 mt-2 p-3 w-56",
+                          "bg-popover border rounded-lg shadow-lg",
+                          "animate-in fade-in slide-in-from-top-2 duration-200",
+                          "hidden sm:block z-50"
+                        )}>
+                          <p className="text-sm font-medium mb-1">Mode Démo</p>
+                          <p className="text-xs text-muted-foreground">
+                            Explorez la plateforme avec 50,000 MNEE virtuels. Aucun wallet requis.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               }
 
               if (chain.unsupported) {
                 return (
-                  <Button onClick={openChainModal} variant="destructive">
-                    Wrong Network
+                  <Button 
+                    onClick={openChainModal} 
+                    variant="destructive"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                    Mauvais Réseau
                   </Button>
                 );
               }
 
               return (
-                <div className="flex items-center gap-3">
-                  {/* MNEE Balance Display */}
-                  <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-secondary rounded-md">
-                    <span className="text-sm font-medium">
+                <button
+                  onClick={openAccountModal}
+                  className={cn(
+                    "flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg",
+                    "bg-secondary hover:bg-secondary/80",
+                    "border border-border",
+                    "transition-all duration-200 active:scale-95"
+                  )}
+                >
+                  <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
+                  
+                  {/* Balance */}
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold text-sm tabular-nums">
                       {isBalanceLoading ? (
-                        '...'
+                        <span className="inline-block w-12 h-4 bg-muted animate-pulse rounded" />
                       ) : mneeBalance ? (
-                        `${parseFloat(formatUnits(mneeBalance.value, mneeBalance.decimals)).toFixed(2)} MNEE`
+                        parseFloat(formatUnits(mneeBalance.value, mneeBalance.decimals)).toFixed(0)
                       ) : (
-                        '0 MNEE'
+                        '0'
                       )}
                     </span>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">MNEE</span>
                   </div>
-
-                  {/* Account Button */}
-                  <Button
-                    onClick={openAccountModal}
-                    variant="outline"
-                    size="sm"
-                    className="font-mono"
-                  >
+                  
+                  <div className="hidden sm:block w-px h-4 bg-border" />
+                  
+                  {/* Address */}
+                  <span className="font-mono text-xs text-muted-foreground hidden sm:inline">
                     {account.displayName}
-                  </Button>
-                </div>
+                  </span>
+                  
+                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                </button>
               );
             })()}
           </div>

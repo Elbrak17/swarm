@@ -12,18 +12,45 @@ import { JobStatus, MNEE_DECIMALS } from '@/lib/constants';
 import { useWalletOrDemo } from '@/hooks/use-wallet-or-demo';
 import { useToast } from '@/hooks/use-toast';
 import { SubmitBidForm } from '@/components/bid';
-import { Eye } from 'lucide-react';
+import { 
+  Eye, 
+  Clock, 
+  Wallet, 
+  Users, 
+  CheckCircle2, 
+  Play, 
+  ArrowLeft,
+  Sparkles,
+  TrendingUp,
+  MessageSquare
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DemoJobDetailPageProps {
   params: { id: string };
 }
 
-const statusColors: Record<string, string> = {
-  [JobStatus.OPEN]: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  [JobStatus.ASSIGNED]: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  [JobStatus.IN_PROGRESS]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  [JobStatus.COMPLETED]: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  [JobStatus.DISPUTED]: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+const statusConfig: Record<string, { color: string; icon: typeof Clock; label: string }> = {
+  [JobStatus.OPEN]: { 
+    color: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800', 
+    icon: Clock,
+    label: 'Ouvert'
+  },
+  [JobStatus.ASSIGNED]: { 
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800', 
+    icon: Users,
+    label: 'Assigné'
+  },
+  [JobStatus.IN_PROGRESS]: { 
+    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800', 
+    icon: Play,
+    label: 'En cours'
+  },
+  [JobStatus.COMPLETED]: { 
+    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300 border-purple-200 dark:border-purple-800', 
+    icon: CheckCircle2,
+    label: 'Terminé'
+  },
 };
 
 export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
@@ -50,10 +77,13 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-2xl font-bold mb-4">Mode Démo Requis</h1>
+          <div className="max-w-lg mx-auto text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+              <Eye className="w-8 h-8 text-amber-500" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Mode Démo Requis</h1>
             <p className="text-muted-foreground mb-6">
-              Cette page est uniquement disponible en mode démo.
+              Activez le mode démo pour accéder à cette page.
             </p>
             <Link href="/marketplace">
               <Button>Retour au Marketplace</Button>
@@ -69,7 +99,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-lg mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Job Non Trouvé</h1>
             <p className="text-muted-foreground mb-6">Ce job démo n&apos;existe pas.</p>
             <Link href="/marketplace">
@@ -82,14 +112,17 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   }
 
   const paymentMnee = formatUnits(BigInt(job.payment), MNEE_DECIMALS);
+  const formattedPayment = parseFloat(paymentMnee).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
   const isJobOwner = address && job.clientAddr.toLowerCase() === address.toLowerCase();
+  const statusInfo = statusConfig[job.status] || statusConfig[JobStatus.OPEN];
+  const StatusIcon = statusInfo.icon;
 
   const handleAcceptBid = async (bidId: string) => {
     setAcceptingBid(bidId);
     try {
       await acceptDemoBid(job.id, bidId);
       toast({ 
-        title: 'Enchère acceptée! (Démo)', 
+        title: '✅ Enchère acceptée!', 
         description: 'Le swarm a été assigné à ce job.' 
       });
       forceUpdate({});
@@ -107,7 +140,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   const handleStartExecution = async () => {
     try {
       await startDemoJobExecution(job.id);
-      toast({ title: 'Exécution démarrée! (Démo)' });
+      toast({ title: '🚀 Exécution démarrée!' });
       forceUpdate({});
     } catch {
       toast({ title: 'Erreur', variant: 'destructive' });
@@ -117,7 +150,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   const handleCompleteJob = async () => {
     try {
       await completeDemoJob(job.id);
-      toast({ title: 'Job terminé! (Démo)', description: 'Le paiement a été libéré.' });
+      toast({ title: '🎉 Job terminé!', description: 'Le paiement a été libéré.' });
       forceUpdate({});
     } catch {
       toast({ title: 'Erreur', variant: 'destructive' });
@@ -130,44 +163,60 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Demo indicator */}
-          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-            <Eye className="w-4 h-4" />
-            <span className="text-sm font-medium">Job Démo</span>
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 sm:pb-8">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+          {/* Back button - Mobile */}
+          <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Marketplace
+          </Link>
+
+          {/* Demo Badge */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">
+              <Eye className="w-3.5 h-3.5 text-amber-500" />
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Job Démo</span>
+              <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
+            </div>
           </div>
 
-          {/* Job Header */}
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{currentJob.title}</h1>
-              <div className="flex items-center gap-3">
-                <Badge className={statusColors[currentJob.status] || 'bg-gray-100 text-gray-800'}>
-                  {currentJob.status}
-                </Badge>
-                <span className="text-muted-foreground">
-                  Posté {formatDistanceToNow(new Date(currentJob.createdAt))}
-                </span>
+          {/* Job Header Card */}
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="space-y-2">
+                  <Badge className={cn("gap-1.5", statusInfo.color)}>
+                    <StatusIcon className="w-3 h-3" />
+                    {statusInfo.label}
+                  </Badge>
+                  <h1 className="text-xl sm:text-2xl font-bold">{currentJob.title}</h1>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    Posté {formatDistanceToNow(new Date(currentJob.createdAt))}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-background rounded-xl border">
+                  <Wallet className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="text-2xl font-bold text-primary tabular-nums">{formattedPayment}</div>
+                    <div className="text-xs text-muted-foreground">MNEE</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-primary">{paymentMnee} MNEE</div>
-              <div className="text-sm text-muted-foreground">Paiement</div>
-            </div>
-          </div>
+          </Card>
 
-          {/* Job Details */}
+          {/* Description */}
           <Card>
-            <CardHeader>
-              <CardTitle>Description</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Description</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="whitespace-pre-wrap">{currentJob.description}</p>
+            <CardContent className="space-y-4">
+              <p className="text-sm sm:text-base whitespace-pre-wrap leading-relaxed">{currentJob.description}</p>
               {currentJob.requirements && (
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Exigences</h4>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{currentJob.requirements}</p>
+                <div className="p-3 bg-muted rounded-lg">
+                  <h4 className="font-medium text-sm mb-2">Exigences</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentJob.requirements}</p>
                 </div>
               )}
             </CardContent>
@@ -188,16 +237,17 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   onCancel={() => setShowBidForm(false)}
                 />
               ) : (
-                <Card>
-                  <CardContent className="py-6">
-                    <div className="flex items-center justify-between">
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="py-4 sm:py-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <h3 className="font-semibold">Intéressé par ce job?</h3>
                         <p className="text-sm text-muted-foreground">
                           Soumettez une enchère avec votre swarm.
                         </p>
                       </div>
-                      <Button onClick={() => setShowBidForm(true)}>
+                      <Button onClick={() => setShowBidForm(true)} className="gap-2">
+                        <TrendingUp className="w-4 h-4" />
                         Placer une Enchère
                       </Button>
                     </div>
@@ -209,12 +259,15 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
 
           {/* Assigned Swarm */}
           {currentJob.swarmId && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Swarm Assigné</CardTitle>
+            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  Swarm Assigné
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-semibold">{currentJob.swarmName}</h3>
                     <p className="text-sm text-muted-foreground">
@@ -222,13 +275,15 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                     </p>
                   </div>
                   {isJobOwner && currentJob.status === 'ASSIGNED' && (
-                    <Button onClick={handleStartExecution}>
-                      Démarrer l&apos;Exécution
+                    <Button onClick={handleStartExecution} className="gap-2">
+                      <Play className="w-4 h-4" />
+                      Démarrer
                     </Button>
                   )}
                   {isJobOwner && currentJob.status === 'IN_PROGRESS' && (
-                    <Button onClick={handleCompleteJob}>
-                      Marquer comme Terminé
+                    <Button onClick={handleCompleteJob} className="gap-2 bg-green-600 hover:bg-green-700">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Terminer
                     </Button>
                   )}
                 </div>
@@ -238,18 +293,22 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
 
           {/* Execution Progress */}
           {currentJob.status === 'IN_PROGRESS' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Progression</CardTitle>
+            <Card className="border-yellow-200 dark:border-yellow-800 overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 animate-pulse" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Play className="w-4 h-4 text-yellow-500" />
+                  En cours d&apos;exécution
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
-                    <span>Le job est en cours d&apos;exécution par le swarm...</span>
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                    <span className="text-sm">Le swarm traite votre demande...</span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '60%' }} />
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div className="bg-yellow-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }} />
                   </div>
                 </div>
               </CardContent>
@@ -258,62 +317,102 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
 
           {/* Completed */}
           {currentJob.status === 'COMPLETED' && (
-            <Card className="border-green-500">
-              <CardHeader>
-                <CardTitle className="text-green-600">Job Terminé!</CardTitle>
+            <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2 text-green-600 dark:text-green-400">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Job Terminé!
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Le paiement a été libéré au swarm. Hash du résultat: {currentJob.resultHash}
+                <p className="text-sm text-muted-foreground">
+                  Le paiement a été libéré au swarm.
                 </p>
+                {currentJob.resultHash && (
+                  <code className="mt-2 block text-xs bg-muted p-2 rounded overflow-x-auto">
+                    {currentJob.resultHash}
+                  </code>
+                )}
               </CardContent>
             </Card>
           )}
 
           {/* Bids Section */}
           <Card>
-            <CardHeader>
-              <CardTitle>Enchères ({currentJob.bids.length})</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Enchères ({currentJob.bids.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {currentJob.bids.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Pas encore d&apos;enchères.
-                </p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
+                    <MessageSquare className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Pas encore d&apos;enchères
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {currentJob.bids.map((bid) => (
                     <div
                       key={bid.id}
-                      className={`p-4 rounded-lg border ${bid.isAccepted ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-border'}`}
+                      className={cn(
+                        "p-3 sm:p-4 rounded-lg border transition-all",
+                        bid.isAccepted 
+                          ? 'border-green-500 bg-green-50 dark:bg-green-950/50' 
+                          : 'border-border hover:border-primary/30'
+                      )}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold">{bid.swarmName}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold truncate">{bid.swarmName}</span>
                             {bid.isAccepted && (
-                              <Badge className="bg-green-100 text-green-800">Acceptée</Badge>
+                              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Acceptée
+                              </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>Est. {bid.estimatedTime}h</span>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {bid.estimatedTime}h
+                            </span>
                           </div>
                           {bid.message && (
-                            <p className="mt-2 text-sm">{bid.message}</p>
+                            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{bid.message}</p>
                           )}
                         </div>
-                        <div className="text-right ml-4">
-                          <div className="font-bold text-lg">
-                            {formatUnits(BigInt(bid.price), MNEE_DECIMALS)} MNEE
+                        <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
+                          <div className="text-right">
+                            <div className="font-bold text-lg tabular-nums">
+                              {parseFloat(formatUnits(BigInt(bid.price), MNEE_DECIMALS)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
+                            </div>
+                            <div className="text-xs text-muted-foreground">MNEE</div>
                           </div>
                           {isJobOwner && currentJob.status === 'OPEN' && !bid.isAccepted && (
                             <Button
                               size="sm"
-                              className="mt-2"
                               onClick={() => handleAcceptBid(bid.id)}
                               disabled={acceptingBid === bid.id}
+                              className="gap-1.5"
                             >
-                              {acceptingBid === bid.id ? 'Acceptation...' : 'Accepter'}
+                              {acceptingBid === bid.id ? (
+                                <>
+                                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  ...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Accepter
+                                </>
+                              )}
                             </Button>
                           )}
                         </div>
@@ -324,15 +423,18 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
               )}
             </CardContent>
           </Card>
-
-          {/* Back Link */}
-          <div className="pt-4">
-            <Link href="/marketplace">
-              <Button variant="outline">← Retour au Marketplace</Button>
-            </Link>
-          </div>
         </div>
       </main>
+
+      {/* Mobile Fixed Bottom Action */}
+      {currentJob.status === 'OPEN' && !isJobOwner && !showBidForm && (
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-background/95 backdrop-blur border-t sm:hidden">
+          <Button onClick={() => setShowBidForm(true)} className="w-full gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Placer une Enchère
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
