@@ -72,11 +72,11 @@ function isValidAddress(address: string): boolean {
 export function CreateSwarmForm() {
   const router = useRouter();
   const { address: realAddress, isConnected: isReallyConnected } = useAccount();
-  const { isDemoMode, address: demoAddress, createDemoSwarm } = useWalletOrDemo();
+  const { isDemoMode, address: demoAddress, createDemoSwarm, isHydrated } = useWalletOrDemo();
   const { toast } = useToast();
   
   // Effective address (real or demo)
-  const address = isReallyConnected ? realAddress : demoAddress;
+  const address = isDemoMode ? demoAddress : realAddress;
   const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
@@ -323,6 +323,10 @@ export function CreateSwarmForm() {
 
   // Determine button state and text
   const getButtonState = () => {
+    if (!isHydrated) {
+      return { disabled: true, text: 'Loading...' };
+    }
+    
     if (!isConnected) {
       return { disabled: true, text: 'Connect Wallet' };
     }

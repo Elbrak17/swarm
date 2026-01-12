@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/components/layout';
 import { JobCard } from '@/components/marketplace/job-card';
 import { SwarmCard } from '@/components/marketplace/swarm-card';
@@ -23,8 +23,8 @@ export default function MarketplacePage() {
   const [statusFilter, setStatusFilter] = useState<JobStatus | null>(null);
   const [swarmSort, setSwarmSort] = useState<SortOrder>('rating');
   
-  // Demo mode support
-  const { isDemoMode, demoJobs, demoSwarms } = useWalletOrDemo();
+  // Demo mode support with hydration
+  const { isDemoMode, demoJobs, demoSwarms, isHydrated } = useWalletOrDemo();
 
   // Fetch jobs (only when not in demo mode)
   const { data: jobsData, isLoading: jobsLoading } = trpc.job.list.useQuery(
@@ -93,8 +93,8 @@ export default function MarketplacePage() {
 
   const totalJobs = isDemoMode ? displayJobs.length : (jobsData?.total || 0);
   const totalSwarms = isDemoMode ? displaySwarms.length : (swarmsData?.total || 0);
-  const isJobsLoading = !isDemoMode && jobsLoading;
-  const isSwarmsLoading = !isDemoMode && swarmsLoading;
+  const isJobsLoading = !isHydrated || (!isDemoMode && jobsLoading);
+  const isSwarmsLoading = !isHydrated || (!isDemoMode && swarmsLoading);
 
   return (
     <div className="min-h-screen flex flex-col">

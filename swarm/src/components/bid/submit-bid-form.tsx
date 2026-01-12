@@ -38,11 +38,11 @@ interface FormErrors {
  */
 export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCancel }: SubmitBidFormProps) {
   const { address: realAddress, isConnected: isReallyConnected } = useAccount();
-  const { isDemoMode, address: demoAddress, createDemoBid, getDemoSwarmsByOwner } = useWalletOrDemo();
+  const { isDemoMode, address: demoAddress, createDemoBid, getDemoSwarmsByOwner, isHydrated } = useWalletOrDemo();
   const { toast } = useToast();
   
   // Effective address (real or demo)
-  const address = isReallyConnected ? realAddress : demoAddress;
+  const address = isDemoMode ? demoAddress : realAddress;
   const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
@@ -400,9 +400,9 @@ export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCance
             <Button 
               type="submit" 
               className="flex-1" 
-              disabled={!isConnected || isSubmitting || isLoadingSwarmsEffective}
+              disabled={!isHydrated || !isConnected || isSubmitting || isLoadingSwarmsEffective}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Bid'}
+              {!isHydrated ? 'Loading...' : isSubmitting ? 'Submitting...' : 'Submit Bid'}
             </Button>
           </div>
 

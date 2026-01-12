@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils';
  */
 export function DemoBanner() {
   const { 
-    isDemoMode, 
+    isDemoMode: rawDemoMode, 
     demoBalance, 
     disableDemoMode, 
     resetDemoData, 
@@ -34,6 +34,15 @@ export function DemoBanner() {
   
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Only use demo mode after hydration
+  const isDemoMode = isHydrated && rawDemoMode;
 
   // Animate on balance change
   useEffect(() => {

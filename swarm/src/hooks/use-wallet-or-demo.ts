@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useDemoStore, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
 
@@ -9,8 +10,16 @@ import { useDemoStore, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
  */
 export function useWalletOrDemo() {
   const { address: realAddress, isConnected: isReallyConnected } = useAccount();
+  
+  // Handle hydration - wait for client-side state
+  const [isHydrated, setIsHydrated] = useState(false);
+  
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  
   const { 
-    isDemoMode, 
+    isDemoMode: rawDemoMode, 
     demoAddress, 
     demoBalance,
     demoSwarms,
@@ -27,6 +36,9 @@ export function useWalletOrDemo() {
     getOpenDemoJobs,
     getDemoJobsByClient,
   } = useDemoStore();
+  
+  // Only use demo mode after hydration to avoid SSR mismatch
+  const isDemoMode = isHydrated && rawDemoMode;
 
   // Effective connection state - demo mode counts as "connected"
   const isConnected = isReallyConnected || isDemoMode;
@@ -63,6 +75,7 @@ export function useWalletOrDemo() {
     isConnected,
     address,
     balance,
+    isHydrated,
     
     // Mode flags
     isDemoMode,

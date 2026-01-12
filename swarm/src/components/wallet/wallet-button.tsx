@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useBalance, useSwitchChain, useChainId } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import { Button } from '@/components/ui/button';
 import { MNEE_CONTRACT_ADDRESS, SEPOLIA_CHAIN_ID, MNEE_DECIMALS } from '@/lib/constants';
 import { formatUnits } from 'viem';
-import { useDemoStore, DEMO_MNEE_BALANCE } from '@/store/demo-store';
+import { useDemoStore, DEMO_MNEE_BALANCE, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
 import { Eye, Wallet, Sparkles, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,8 +19,18 @@ export function WalletButton() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  const { isDemoMode, demoAddress, enableDemoMode, disableDemoMode } = useDemoStore();
+  const { isDemoMode: rawDemoMode, enableDemoMode, disableDemoMode } = useDemoStore();
   const [showDemoTooltip, setShowDemoTooltip] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  
+  // Only use demo mode after hydration
+  const isDemoMode = isHydrated && rawDemoMode;
+  const demoAddress = DEMO_WALLET_ADDRESS;
   
   // Fetch MNEE token balance
   const { data: mneeBalance, isLoading: isBalanceLoading } = useBalance({
@@ -48,8 +58,18 @@ export function WalletButton() {
     }
   };
 
+  // Show loading state during hydration
+  if (!isHydrated) {
+    return (
+      <Button variant="outline" size="sm" disabled className="gap-2 px-3 sm:px-4">
+        <Wallet className="w-4 h-4" />
+        <span className="hidden sm:inline">Loading...</span>
+      </Button>
+    );
+  }
+
   // If in demo mode, show premium demo wallet UI
-  if (isDemoMode && !isConnected) {
+  if (isDemoMode) {
     const formattedBalance = parseFloat(formatUnits(BigInt(DEMO_MNEE_BALANCE), MNEE_DECIMALS)).toLocaleString('en-US', {
       maximumFractionDigits: 0
     });
