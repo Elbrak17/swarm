@@ -50,7 +50,7 @@ export function WalletButton() {
 
   // If in demo mode, show premium demo wallet UI
   if (isDemoMode && !isConnected) {
-    const formattedBalance = parseFloat(formatUnits(BigInt(DEMO_MNEE_BALANCE), MNEE_DECIMALS)).toLocaleString('fr-FR', {
+    const formattedBalance = parseFloat(formatUnits(BigInt(DEMO_MNEE_BALANCE), MNEE_DECIMALS)).toLocaleString('en-US', {
       maximumFractionDigits: 0
     });
     const shortAddress = `${demoAddress.slice(0, 6)}...${demoAddress.slice(-4)}`;
@@ -70,7 +70,7 @@ export function WalletButton() {
               <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-amber-400 animate-pulse" />
             </div>
             <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 hidden xs:inline">
-              Démo
+              Demo
             </span>
           </div>
         </div>
@@ -112,7 +112,7 @@ export function WalletButton() {
         className="gap-2 border-yellow-500/50 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10"
       >
         <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-        <span className="hidden sm:inline">Changer vers</span> Sepolia
+        <span className="hidden sm:inline">Switch to</span> Sepolia
       </Button>
     );
   }
@@ -152,7 +152,7 @@ export function WalletButton() {
                       className="gap-2 px-3 sm:px-4"
                     >
                       <Wallet className="w-4 h-4" />
-                      <span className="hidden sm:inline">Connecter</span>
+                      <span className="hidden sm:inline">Connect</span>
                       <span className="sm:hidden">Wallet</span>
                     </Button>
                     
@@ -176,7 +176,7 @@ export function WalletButton() {
                           <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-amber-400" />
                         </div>
                         <span className="text-amber-600 dark:text-amber-400 font-medium hidden sm:inline">
-                          Démo
+                          Demo
                         </span>
                       </Button>
                       
@@ -188,9 +188,9 @@ export function WalletButton() {
                           "animate-in fade-in slide-in-from-top-2 duration-200",
                           "hidden sm:block z-50"
                         )}>
-                          <p className="text-sm font-medium mb-1">Mode Démo</p>
+                          <p className="text-sm font-medium mb-1">Demo Mode</p>
                           <p className="text-xs text-muted-foreground">
-                            Explorez la plateforme avec 50,000 MNEE virtuels. Aucun wallet requis.
+                            Explore the platform with 50,000 virtual MNEE. No wallet required.
                           </p>
                         </div>
                       )}
@@ -208,7 +208,7 @@ export function WalletButton() {
                     className="gap-2"
                   >
                     <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    Mauvais Réseau
+                    Wrong Network
                   </Button>
                 );
               }

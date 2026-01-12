@@ -34,22 +34,22 @@ const statusConfig: Record<string, { color: string; icon: typeof Clock; label: s
   [JobStatus.OPEN]: { 
     color: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800', 
     icon: Clock,
-    label: 'Ouvert'
+    label: 'Open'
   },
   [JobStatus.ASSIGNED]: { 
     color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800', 
     icon: Users,
-    label: 'Assigné'
+    label: 'Assigned'
   },
   [JobStatus.IN_PROGRESS]: { 
     color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800', 
     icon: Play,
-    label: 'En cours'
+    label: 'In Progress'
   },
   [JobStatus.COMPLETED]: { 
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300 border-purple-200 dark:border-purple-800', 
     icon: CheckCircle2,
-    label: 'Terminé'
+    label: 'Completed'
   },
 };
 
@@ -81,12 +81,12 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
               <Eye className="w-8 h-8 text-amber-500" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Mode Démo Requis</h1>
+            <h1 className="text-2xl font-bold mb-2">Demo Mode Required</h1>
             <p className="text-muted-foreground mb-6">
-              Activez le mode démo pour accéder à cette page.
+              Enable demo mode to access this page.
             </p>
             <Link href="/marketplace">
-              <Button>Retour au Marketplace</Button>
+              <Button>Back to Marketplace</Button>
             </Link>
           </div>
         </main>
@@ -100,10 +100,10 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-lg mx-auto text-center">
-            <h1 className="text-2xl font-bold mb-4">Job Non Trouvé</h1>
-            <p className="text-muted-foreground mb-6">Ce job démo n&apos;existe pas.</p>
+            <h1 className="text-2xl font-bold mb-4">Job Not Found</h1>
+            <p className="text-muted-foreground mb-6">This demo job doesn&apos;t exist.</p>
             <Link href="/marketplace">
-              <Button>Retour au Marketplace</Button>
+              <Button>Back to Marketplace</Button>
             </Link>
           </div>
         </main>
@@ -112,7 +112,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   }
 
   const paymentMnee = formatUnits(BigInt(job.payment), MNEE_DECIMALS);
-  const formattedPayment = parseFloat(paymentMnee).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+  const formattedPayment = parseFloat(paymentMnee).toLocaleString('en-US', { maximumFractionDigits: 0 });
   const isJobOwner = address && job.clientAddr.toLowerCase() === address.toLowerCase();
   const statusInfo = statusConfig[job.status] || statusConfig[JobStatus.OPEN];
   const StatusIcon = statusInfo.icon;
@@ -122,14 +122,14 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
     try {
       await acceptDemoBid(job.id, bidId);
       toast({ 
-        title: '✅ Enchère acceptée!', 
-        description: 'Le swarm a été assigné à ce job.' 
+        title: '✅ Bid accepted!', 
+        description: 'The swarm has been assigned to this job.' 
       });
       forceUpdate({});
     } catch (error) {
       toast({ 
-        title: 'Erreur', 
-        description: error instanceof Error ? error.message : 'Erreur', 
+        title: 'Error', 
+        description: error instanceof Error ? error.message : 'Error', 
         variant: 'destructive' 
       });
     } finally {
@@ -140,20 +140,20 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   const handleStartExecution = async () => {
     try {
       await startDemoJobExecution(job.id);
-      toast({ title: '🚀 Exécution démarrée!' });
+      toast({ title: '🚀 Execution started!' });
       forceUpdate({});
     } catch {
-      toast({ title: 'Erreur', variant: 'destructive' });
+      toast({ title: 'Error', variant: 'destructive' });
     }
   };
 
   const handleCompleteJob = async () => {
     try {
       await completeDemoJob(job.id);
-      toast({ title: '🎉 Job terminé!', description: 'Le paiement a été libéré.' });
+      toast({ title: '🎉 Job completed!', description: 'Payment has been released.' });
       forceUpdate({});
     } catch {
-      toast({ title: 'Erreur', variant: 'destructive' });
+      toast({ title: 'Error', variant: 'destructive' });
     }
   };
 
@@ -175,7 +175,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">
               <Eye className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Job Démo</span>
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Demo Job</span>
               <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   <h1 className="text-xl sm:text-2xl font-bold">{currentJob.title}</h1>
                   <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
-                    Posté {formatDistanceToNow(new Date(currentJob.createdAt))}
+                    Posted {formatDistanceToNow(new Date(currentJob.createdAt))}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-background rounded-xl border">
@@ -215,7 +215,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
               <p className="text-sm sm:text-base whitespace-pre-wrap leading-relaxed">{currentJob.description}</p>
               {currentJob.requirements && (
                 <div className="p-3 bg-muted rounded-lg">
-                  <h4 className="font-medium text-sm mb-2">Exigences</h4>
+                  <h4 className="font-medium text-sm mb-2">Requirements</h4>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentJob.requirements}</p>
                 </div>
               )}
@@ -241,14 +241,14 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   <CardContent className="py-4 sm:py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
-                        <h3 className="font-semibold">Intéressé par ce job?</h3>
+                        <h3 className="font-semibold">Interested in this job?</h3>
                         <p className="text-sm text-muted-foreground">
-                          Soumettez une enchère avec votre swarm.
+                          Submit a bid with your swarm.
                         </p>
                       </div>
                       <Button onClick={() => setShowBidForm(true)} className="gap-2">
                         <TrendingUp className="w-4 h-4" />
-                        Placer une Enchère
+                        Place Bid
                       </Button>
                     </div>
                   </CardContent>
@@ -263,7 +263,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Users className="w-4 h-4 text-blue-500" />
-                  Swarm Assigné
+                  Assigned Swarm
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -277,13 +277,13 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   {isJobOwner && currentJob.status === 'ASSIGNED' && (
                     <Button onClick={handleStartExecution} className="gap-2">
                       <Play className="w-4 h-4" />
-                      Démarrer
+                      Start
                     </Button>
                   )}
                   {isJobOwner && currentJob.status === 'IN_PROGRESS' && (
                     <Button onClick={handleCompleteJob} className="gap-2 bg-green-600 hover:bg-green-700">
                       <CheckCircle2 className="w-4 h-4" />
-                      Terminer
+                      Complete
                     </Button>
                   )}
                 </div>
@@ -298,14 +298,14 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Play className="w-4 h-4 text-yellow-500" />
-                  En cours d&apos;exécution
+                  In Progress
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                    <span className="text-sm">Le swarm traite votre demande...</span>
+                    <span className="text-sm">The swarm is processing your request...</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                     <div className="bg-yellow-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }} />
@@ -321,12 +321,12 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2 text-green-600 dark:text-green-400">
                   <CheckCircle2 className="w-5 h-5" />
-                  Job Terminé!
+                  Job Completed!
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Le paiement a été libéré au swarm.
+                  Payment has been released to the swarm.
                 </p>
                 {currentJob.resultHash && (
                   <code className="mt-2 block text-xs bg-muted p-2 rounded overflow-x-auto">
@@ -342,7 +342,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
-                Enchères ({currentJob.bids.length})
+                Bids ({currentJob.bids.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -352,7 +352,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                     <MessageSquare className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground text-sm">
-                    Pas encore d&apos;enchères
+                    No bids yet
                   </p>
                 </div>
               ) : (
@@ -374,7 +374,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                             {bid.isAccepted && (
                               <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 gap-1">
                                 <CheckCircle2 className="w-3 h-3" />
-                                Acceptée
+                                Accepted
                               </Badge>
                             )}
                           </div>
@@ -391,7 +391,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                         <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
                           <div className="text-right">
                             <div className="font-bold text-lg tabular-nums">
-                              {parseFloat(formatUnits(BigInt(bid.price), MNEE_DECIMALS)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
+                              {parseFloat(formatUnits(BigInt(bid.price), MNEE_DECIMALS)).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                             </div>
                             <div className="text-xs text-muted-foreground">MNEE</div>
                           </div>
@@ -410,7 +410,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                               ) : (
                                 <>
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  Accepter
+                                  Accept
                                 </>
                               )}
                             </Button>
@@ -431,7 +431,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
         <div className="fixed bottom-0 left-0 right-0 p-3 bg-background/95 backdrop-blur border-t sm:hidden">
           <Button onClick={() => setShowBidForm(true)} className="w-full gap-2">
             <TrendingUp className="w-4 h-4" />
-            Placer une Enchère
+            Place Bid
           </Button>
         </div>
       )}

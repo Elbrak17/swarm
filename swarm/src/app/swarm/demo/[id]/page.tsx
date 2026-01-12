@@ -31,17 +31,17 @@ const roleConfig: Record<string, { color: string; label: string; description: st
   ROUTER: { 
     color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300', 
     label: 'Router',
-    description: 'Coordonne et distribue les tâches'
+    description: 'Coordinates and distributes tasks'
   },
   WORKER: { 
     color: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300', 
     label: 'Worker',
-    description: 'Exécute les tâches assignées'
+    description: 'Executes assigned tasks'
   },
   QA: { 
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300', 
     label: 'QA',
-    description: 'Valide la qualité du travail'
+    description: 'Validates work quality'
   },
 };
 
@@ -60,12 +60,12 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
               <Eye className="w-8 h-8 text-amber-500" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Mode Démo Requis</h1>
+            <h1 className="text-2xl font-bold mb-2">Demo Mode Required</h1>
             <p className="text-muted-foreground mb-6">
-              Activez le mode démo pour accéder à cette page.
+              Enable demo mode to access this page.
             </p>
             <Link href="/marketplace">
-              <Button>Retour au Marketplace</Button>
+              <Button>Back to Marketplace</Button>
             </Link>
           </div>
         </main>
@@ -79,10 +79,10 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-lg mx-auto text-center">
-            <h1 className="text-2xl font-bold mb-4">Swarm Non Trouvé</h1>
-            <p className="text-muted-foreground mb-6">Ce swarm démo n&apos;existe pas.</p>
+            <h1 className="text-2xl font-bold mb-4">Swarm Not Found</h1>
+            <p className="text-muted-foreground mb-6">This demo swarm doesn&apos;t exist.</p>
             <Link href="/marketplace">
-              <Button>Retour au Marketplace</Button>
+              <Button>Back to Marketplace</Button>
             </Link>
           </div>
         </main>
@@ -92,7 +92,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
 
   const isOwner = address && swarm.owner.toLowerCase() === address.toLowerCase();
   const budgetMnee = formatUnits(BigInt(swarm.budget), MNEE_DECIMALS);
-  const formattedBudget = parseFloat(budgetMnee).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+  const formattedBudget = parseFloat(budgetMnee).toLocaleString('en-US', { maximumFractionDigits: 0 });
   
   // Get jobs assigned to this swarm
   const assignedJobs = demoJobs.filter(j => j.swarmId === swarm.id);
@@ -120,12 +120,12 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">
               <Eye className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Swarm Démo</span>
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Demo Swarm</span>
               <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
             </div>
             {isOwner && (
               <Badge className="bg-primary/10 text-primary border-primary/20">
-                Votre Swarm
+                Your Swarm
               </Badge>
             )}
           </div>
@@ -160,7 +160,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                     </div>
                   </div>
                   {!swarm.isActive && (
-                    <Badge variant="secondary">Inactif</Badge>
+                    <Badge variant="secondary">Inactive</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-background rounded-xl border">
@@ -191,7 +191,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                   <Zap className="w-5 h-5 text-yellow-500" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-bold">{inProgressJobs.length}</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">En cours</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">In Progress</div>
               </CardContent>
             </Card>
             <Card className="text-center">
@@ -200,7 +200,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-bold">{completedJobs.length}</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Terminés</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Completed</div>
               </CardContent>
             </Card>
           </div>
@@ -265,7 +265,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Briefcase className="w-4 h-4" />
-                  Jobs Récents
+                  Recent Jobs
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -284,9 +284,9 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                         </p>
                       </div>
                       <Badge variant="outline" className="ml-2 flex-shrink-0">
-                        {job.status === 'COMPLETED' ? 'Terminé' : 
-                         job.status === 'IN_PROGRESS' ? 'En cours' : 
-                         job.status === 'ASSIGNED' ? 'Assigné' : job.status}
+                        {job.status === 'COMPLETED' ? 'Completed' : 
+                         job.status === 'IN_PROGRESS' ? 'In Progress' : 
+                         job.status === 'ASSIGNED' ? 'Assigned' : job.status}
                       </Badge>
                     </Link>
                   ))}
@@ -298,7 +298,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
           {/* Metadata */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Informations</CardTitle>
+              <CardTitle className="text-base">Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center text-sm">
@@ -308,13 +308,13 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                 </code>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Propriétaire</span>
+                <span className="text-muted-foreground">Owner</span>
                 <code className="font-mono text-xs bg-muted px-2 py-1 rounded">
                   {swarm.owner.slice(0, 6)}...{swarm.owner.slice(-4)}
                 </code>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Créé</span>
+                <span className="text-muted-foreground">Created</span>
                 <span className="flex items-center gap-1 text-xs">
                   <Clock className="w-3 h-3" />
                   {formatDistanceToNow(new Date(swarm.createdAt))}

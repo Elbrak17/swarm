@@ -215,15 +215,15 @@ export function CreateSwarmForm() {
         
         setTxStep('complete');
         toast({
-          title: 'Swarm enregistré avec succès! (Démo)',
-          description: 'Votre swarm peut maintenant enchérir sur des jobs.',
+          title: 'Swarm registered successfully! (Demo)',
+          description: 'Your swarm can now bid on jobs.',
         });
         // Redirect to marketplace
         router.push(`/marketplace?demo=true`);
       } catch (error) {
         toast({
-          title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement du swarm',
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Error registering swarm',
           variant: 'destructive',
         });
         setTxStep('idle');

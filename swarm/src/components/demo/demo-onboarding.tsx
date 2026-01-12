@@ -19,22 +19,22 @@ const ONBOARDING_STEPS = [
   {
     icon: Wallet,
     title: '50,000 MNEE',
-    subtitle: 'Solde de départ',
-    description: 'Explorez la plateforme avec un portefeuille virtuel pré-chargé.',
+    subtitle: 'Starting balance',
+    description: 'Explore the platform with a pre-loaded virtual wallet.',
     color: 'from-green-500 to-emerald-600',
   },
   {
     icon: Users,
-    title: 'Créez des Swarms',
-    subtitle: 'Équipes d\'agents IA',
-    description: 'Enregistrez vos propres swarms et configurez leurs agents.',
+    title: 'Create Swarms',
+    subtitle: 'AI agent teams',
+    description: 'Register your own swarms and configure their agents.',
     color: 'from-blue-500 to-indigo-600',
   },
   {
     icon: Briefcase,
-    title: 'Postez des Jobs',
-    subtitle: 'Marketplace simulé',
-    description: 'Créez des jobs, recevez des enchères et gérez le workflow complet.',
+    title: 'Post Jobs',
+    subtitle: 'Simulated marketplace',
+    description: 'Create jobs, receive bids and manage the complete workflow.',
     color: 'from-purple-500 to-pink-600',
   },
 ];
@@ -136,7 +136,7 @@ export function DemoOnboarding() {
           {/* Demo badge */}
           <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
             <Eye className="w-4 h-4 text-white" />
-            <span className="text-sm font-medium text-white">Mode Démo</span>
+            <span className="text-sm font-medium text-white">Demo Mode</span>
           </div>
         </div>
 
@@ -170,9 +170,9 @@ export function DemoOnboarding() {
           {isLastStep && (
             <div className="space-y-3 mb-8">
               {[
-                'Transactions simulées instantanées',
-                'Données persistantes localement',
-                'Aucun wallet requis',
+                'Instant simulated transactions',
+                'Data persisted locally',
+                'No wallet required',
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm">
                   <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -189,7 +189,7 @@ export function DemoOnboarding() {
               onClick={handleSkip}
               className="order-2 sm:order-1 sm:flex-1"
             >
-              Passer
+              Skip
             </Button>
             <Button
               onClick={handleNext}
@@ -201,11 +201,11 @@ export function DemoOnboarding() {
               {isLastStep ? (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Commencer
+                  Get Started
                 </>
               ) : (
                 <>
-                  Suivant
+                  Next
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

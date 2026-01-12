@@ -29,8 +29,8 @@ const navLinks = [
 ];
 
 const quickActions = [
-  { href: '/job/new', label: 'Poster un Job', icon: Briefcase, color: 'text-blue-500' },
-  { href: '/swarm/new', label: 'Créer un Swarm', icon: Users, color: 'text-purple-500' },
+  { href: '/job/new', label: 'Post a Job', icon: Briefcase, color: 'text-blue-500' },
+  { href: '/swarm/new', label: 'Create Swarm', icon: Users, color: 'text-purple-500' },
 ];
 
 /**
@@ -137,7 +137,7 @@ export function Header() {
               size="sm"
               className="h-9 w-9 p-0"
               onClick={toggleMobileMenu}
-              aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMobileMenuOpen}
             >
               <div className="relative w-5 h-5">
@@ -182,7 +182,7 @@ export function Header() {
               <div className="flex items-center gap-2 px-3 py-2 mb-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
                 <Eye className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  Mode Démo Actif
+                  Demo Mode Active
                 </span>
                 <Sparkles className="w-3 h-3 text-amber-400 ml-auto animate-pulse" />
               </div>
@@ -218,7 +218,7 @@ export function Header() {
 
             {/* Quick Actions */}
             <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Actions Rapides
+              Quick Actions
             </p>
             {quickActions.map((action) => {
               const Icon = action.icon;
@@ -243,7 +243,7 @@ export function Header() {
 
             {/* Theme Toggle */}
             <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-sm text-muted-foreground">Thème</span>
+              <span className="text-sm text-muted-foreground">Theme</span>
               <ThemeToggle />
             </div>
           </nav>

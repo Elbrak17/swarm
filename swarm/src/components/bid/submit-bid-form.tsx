@@ -187,14 +187,14 @@ export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCance
         });
         
         toast({
-          title: 'Enchère soumise! (Démo)',
-          description: 'Votre enchère a été enregistrée.',
+          title: 'Bid submitted! (Demo)',
+          description: 'Your bid has been recorded.',
         });
         onSuccess?.();
       } catch (error) {
         toast({
-          title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Erreur lors de la soumission',
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Error submitting bid',
           variant: 'destructive',
         });
         setIsSubmitting(false);

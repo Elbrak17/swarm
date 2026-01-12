@@ -237,15 +237,15 @@ export function CreateJobForm() {
         
         setTxStep('complete');
         toast({
-          title: 'Job créé avec succès! (Démo)',
-          description: 'Votre job est maintenant visible sur le marketplace.',
+          title: 'Job created successfully! (Demo)',
+          description: 'Your job is now visible on the marketplace.',
         });
         // Redirect to marketplace with demo job visible
         router.push(`/marketplace?demo=true`);
       } catch (error) {
         toast({
-          title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Erreur lors de la création du job',
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Error creating job',
           variant: 'destructive',
         });
         setTxStep('idle');

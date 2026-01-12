@@ -46,7 +46,7 @@ export function DemoBanner() {
 
   if (!isDemoMode) return null;
 
-  const formattedBalance = parseFloat(formatUnits(BigInt(demoBalance), MNEE_DECIMALS)).toLocaleString('fr-FR', {
+  const formattedBalance = parseFloat(formatUnits(BigInt(demoBalance), MNEE_DECIMALS)).toLocaleString('en-US', {
     maximumFractionDigits: 0
   });
   const txCount = demoTransactions.length;
@@ -68,7 +68,7 @@ export function DemoBanner() {
                 <Eye className="w-4 h-4" />
                 <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-yellow-200 animate-pulse" />
               </div>
-              <span className="font-semibold text-sm hidden xs:inline">Démo</span>
+              <span className="font-semibold text-sm hidden xs:inline">Demo</span>
             </div>
             
             {/* Balance - prominent on mobile */}
@@ -113,7 +113,7 @@ export function DemoBanner() {
                 resetDemoData();
               }}
               className="h-7 px-2 sm:px-3 text-white hover:bg-white/20 hover:text-white"
-              title="Réinitialiser"
+              title="Reset demo data"
             >
               <RefreshCw className="w-3.5 h-3.5 sm:mr-1" />
               <span className="hidden sm:inline text-xs">Reset</span>
@@ -126,10 +126,10 @@ export function DemoBanner() {
                 disableDemoMode();
               }}
               className="h-7 px-2 sm:px-3 text-white hover:bg-white/20 hover:text-white"
-              title="Quitter le mode démo"
+              title="Exit demo mode"
             >
               <X className="w-3.5 h-3.5 sm:mr-1" />
-              <span className="hidden sm:inline text-xs">Quitter</span>
+              <span className="hidden sm:inline text-xs">Exit</span>
             </Button>
           </div>
         </div>
@@ -156,7 +156,7 @@ export function DemoBanner() {
             </div>
           </div>
           <p className="text-[10px] text-center mt-2 opacity-70">
-            Mode démo • Données simulées • Aucune transaction réelle
+            Demo mode • Simulated data • No real transactions
           </p>
         </div>
       </div>
