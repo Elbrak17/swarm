@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout';
 import { JobCard } from '@/components/marketplace/job-card';
 import { SwarmCard } from '@/components/marketplace/swarm-card';
