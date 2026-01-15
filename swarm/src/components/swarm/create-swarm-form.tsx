@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -71,13 +71,16 @@ function isValidAddress(address: string): boolean {
 
 export function CreateSwarmForm() {
   const router = useRouter();
-  const { address: realAddress, isConnected: isReallyConnected } = useAccount();
-  const { isDemoMode, address: demoAddress, createDemoSwarm, isHydrated } = useWalletOrDemo();
+  // Use the unified hook for all wallet/demo state
+  const { 
+    isDemoMode, 
+    isReallyConnected,
+    isConnected,
+    address, 
+    createDemoSwarm, 
+    isHydrated 
+  } = useWalletOrDemo();
   const { toast } = useToast();
-  
-  // Effective address (real or demo)
-  const address = isDemoMode ? demoAddress : realAddress;
-  const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
   const [name, setName] = useState('');

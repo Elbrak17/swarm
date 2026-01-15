@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,13 +81,17 @@ interface FormErrors {
 
 export function CreateJobForm() {
   const router = useRouter();
-  const { address: realAddress, isConnected: isReallyConnected } = useAccount();
-  const { isDemoMode, address: demoAddress, balance: demoBalance, createDemoJob, isHydrated } = useWalletOrDemo();
+  // Use the unified hook for all wallet/demo state
+  const { 
+    isDemoMode, 
+    isReallyConnected,
+    isConnected,
+    address, 
+    balance: demoBalance, 
+    createDemoJob, 
+    isHydrated 
+  } = useWalletOrDemo();
   const { toast } = useToast();
-  
-  // Effective address (real or demo)
-  const address = isDemoMode ? demoAddress : realAddress;
-  const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
   const [title, setTitle] = useState('');
@@ -105,8 +109,8 @@ export function CreateJobForm() {
     address: MNEE_CONTRACT_ADDRESS,
     abi: MNEE_ABI,
     functionName: 'balanceOf',
-    args: realAddress ? [realAddress] : undefined,
-    query: { enabled: !!realAddress && isReallyConnected && !isDemoMode },
+    args: address ? [address as `0x${string}`] : undefined,
+    query: { enabled: !!address && isReallyConnected && !isDemoMode },
   });
 
   // Read current allowance (only for real wallet)
@@ -114,8 +118,8 @@ export function CreateJobForm() {
     address: MNEE_CONTRACT_ADDRESS,
     abi: MNEE_ABI,
     functionName: 'allowance',
-    args: realAddress && JOB_ESCROW_ADDRESS ? [realAddress, JOB_ESCROW_ADDRESS] : undefined,
-    query: { enabled: !!realAddress && !!JOB_ESCROW_ADDRESS && isReallyConnected && !isDemoMode },
+    args: address && JOB_ESCROW_ADDRESS ? [address as `0x${string}`, JOB_ESCROW_ADDRESS] : undefined,
+    query: { enabled: !!address && !!JOB_ESCROW_ADDRESS && isReallyConnected && !isDemoMode },
   });
 
   // Read next job ID (only for real wallet)

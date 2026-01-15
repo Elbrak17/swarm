@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,13 +36,17 @@ interface FormErrors {
  * Requirements: 4.1, 4.5
  */
 export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCancel }: SubmitBidFormProps) {
-  const { address: realAddress, isConnected: isReallyConnected } = useAccount();
-  const { isDemoMode, address: demoAddress, createDemoBid, getDemoSwarmsByOwner, isHydrated } = useWalletOrDemo();
+  // Use the unified hook for all wallet/demo state
+  const { 
+    isDemoMode, 
+    isReallyConnected,
+    isConnected,
+    address, 
+    createDemoBid, 
+    getDemoSwarmsByOwner, 
+    isHydrated 
+  } = useWalletOrDemo();
   const { toast } = useToast();
-  
-  // Effective address (real or demo)
-  const address = isDemoMode ? demoAddress : realAddress;
-  const isConnected = isReallyConnected || isDemoMode;
   
   // Form state
   const [selectedSwarmId, setSelectedSwarmId] = useState('');
@@ -55,8 +58,8 @@ export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCance
 
   // Fetch user's swarms (only for real mode)
   const { data: swarmsData, isLoading: isLoadingSwarms } = trpc.swarm.list.useQuery(
-    { owner: realAddress?.toLowerCase(), isActive: true },
-    { enabled: !!realAddress && isReallyConnected && !isDemoMode }
+    { owner: address?.toLowerCase(), isActive: true },
+    { enabled: !!address && isReallyConnected && !isDemoMode }
   );
 
   // Fetch existing bids for this job (only for real mode)
@@ -86,7 +89,7 @@ export function SubmitBidForm({ jobId, jobPayment, isDemoJob, onSuccess, onCance
 
   // Get swarms based on mode
   const userSwarms = isDemoMode 
-    ? getDemoSwarmsByOwner(demoAddress || '')
+    ? getDemoSwarmsByOwner(address || '')
     : (swarmsData?.swarms || []);
 
   // Loading state - in demo mode, we're never loading
