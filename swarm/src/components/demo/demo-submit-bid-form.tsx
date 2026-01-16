@@ -28,7 +28,7 @@ interface FormErrors {
 
 export function DemoSubmitBidForm({ jobId, jobPayment, onSuccess, onCancel }: DemoSubmitBidFormProps) {
   const { toast } = useToast();
-  const { createDemoBid, getDemoSwarmsByOwner, demoSwarms } = useDemoStore();
+  const { createDemoBid, getDemoSwarmsByOwner } = useDemoStore();
   
   const [selectedSwarmId, setSelectedSwarmId] = useState('');
   const [priceAmount, setPriceAmount] = useState('');

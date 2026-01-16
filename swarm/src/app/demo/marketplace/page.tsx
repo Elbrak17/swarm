@@ -2,11 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout';
-import { JobCard } from '@/components/marketplace/job-card';
-import { SwarmCard } from '@/components/marketplace/swarm-card';
 import { StatusFilter } from '@/components/marketplace/status-filter';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { AnimatedContainer, StaggerList, StaggerItem } from '@/components/ui/page-transition';
 import { JobStatus } from '@/lib/constants';
 import { useDemoStore } from '@/store/demo-store';

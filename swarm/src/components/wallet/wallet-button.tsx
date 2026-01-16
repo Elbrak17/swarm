@@ -8,7 +8,7 @@ import { sepolia } from 'wagmi/chains';
 import { Button } from '@/components/ui/button';
 import { MNEE_CONTRACT_ADDRESS, SEPOLIA_CHAIN_ID, MNEE_DECIMALS } from '@/lib/constants';
 import { formatUnits } from 'viem';
-import { useDemoStore, DEMO_MNEE_BALANCE, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
+import { useDemoStore, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
 import { Eye, Wallet, Sparkles, ChevronDown, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,7 @@ export function WalletButton() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  const { isDemoMode: rawDemoMode, demoBalance } = useDemoStore();
+  const { demoBalance } = useDemoStore();
   const [showDemoTooltip, setShowDemoTooltip] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   
