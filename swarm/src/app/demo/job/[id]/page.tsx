@@ -9,9 +9,9 @@ import { formatUnits } from 'viem';
 import { formatDistanceToNow } from '@/lib/date-utils';
 import Link from 'next/link';
 import { JobStatus, MNEE_DECIMALS } from '@/lib/constants';
-import { useWalletOrDemo } from '@/hooks/use-wallet-or-demo';
+import { useDemoStore, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
 import { useToast } from '@/hooks/use-toast';
-import { SubmitBidForm } from '@/components/bid';
+import { DemoSubmitBidForm } from '@/components/demo/demo-submit-bid-form';
 import { 
   Eye, 
   Clock, 
@@ -61,38 +61,16 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
   const [, forceUpdate] = useState({});
   
   const { 
-    isDemoMode, 
-    address, 
     getDemoJob, 
     getDemoSwarm,
     acceptDemoBid,
     startDemoJobExecution,
     completeDemoJob,
-  } = useWalletOrDemo();
+  } = useDemoStore();
 
+  // Demo wallet address is always the "connected" user in demo environment
+  const address = DEMO_WALLET_ADDRESS;
   const job = getDemoJob(id);
-
-  if (!isDemoMode) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-lg mx-auto text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-              <Eye className="w-8 h-8 text-amber-500" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">Demo Mode Required</h1>
-            <p className="text-muted-foreground mb-6">
-              Enable demo mode to access this page.
-            </p>
-            <Link href="/marketplace">
-              <Button>Back to Marketplace</Button>
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   if (!job) {
     return (
@@ -102,7 +80,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
           <div className="max-w-lg mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Job Not Found</h1>
             <p className="text-muted-foreground mb-6">This demo job doesn&apos;t exist.</p>
-            <Link href="/marketplace">
+            <Link href="/demo/marketplace">
               <Button>Back to Marketplace</Button>
             </Link>
           </div>
@@ -113,7 +91,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
 
   const paymentMnee = formatUnits(BigInt(job.payment), MNEE_DECIMALS);
   const formattedPayment = parseFloat(paymentMnee).toLocaleString('en-US', { maximumFractionDigits: 0 });
-  const isJobOwner = address && job.clientAddr.toLowerCase() === address.toLowerCase();
+  const isJobOwner = job.clientAddr.toLowerCase() === address.toLowerCase();
   const statusInfo = statusConfig[job.status] || statusConfig[JobStatus.OPEN];
   const StatusIcon = statusInfo.icon;
 
@@ -165,10 +143,10 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
       <Header />
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 sm:pb-8">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
-          {/* Back button - Mobile */}
-          <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          {/* Back button */}
+          <Link href="/demo/marketplace" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Marketplace
+            Demo Marketplace
           </Link>
 
           {/* Demo Badge */}
@@ -181,8 +159,8 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
           </div>
 
           {/* Job Header Card */}
-          <Card className="overflow-hidden">
-            <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4 sm:p-6">
+          <Card className="overflow-hidden border-amber-200 dark:border-amber-800">
+            <div className="bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="space-y-2">
                   <Badge className={cn("gap-1.5", statusInfo.color)}>
@@ -196,9 +174,9 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-background rounded-xl border">
-                  <Wallet className="w-5 h-5 text-primary" />
+                  <Wallet className="w-5 h-5 text-amber-500" />
                   <div>
-                    <div className="text-2xl font-bold text-primary tabular-nums">{formattedPayment}</div>
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">{formattedPayment}</div>
                     <div className="text-xs text-muted-foreground">MNEE</div>
                   </div>
                 </div>
@@ -226,10 +204,9 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
           {currentJob.status === 'OPEN' && !isJobOwner && (
             <>
               {showBidForm ? (
-                <SubmitBidForm
+                <DemoSubmitBidForm
                   jobId={id}
                   jobPayment={currentJob.payment}
-                  isDemoJob={true}
                   onSuccess={() => {
                     setShowBidForm(false);
                     forceUpdate({});
@@ -237,7 +214,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   onCancel={() => setShowBidForm(false)}
                 />
               ) : (
-                <Card className="border-primary/20 bg-primary/5">
+                <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20">
                   <CardContent className="py-4 sm:py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
@@ -351,9 +328,7 @@ export default function DemoJobDetailPage({ params }: DemoJobDetailPageProps) {
                   <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
                     <MessageSquare className="w-6 h-6 text-muted-foreground" />
                   </div>
-                  <p className="text-muted-foreground text-sm">
-                    No bids yet
-                  </p>
+                  <p className="text-muted-foreground text-sm">No bids yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">

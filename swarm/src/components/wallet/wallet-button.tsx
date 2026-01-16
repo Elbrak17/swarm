@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useBalance, useSwitchChain, useChainId } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { MNEE_CONTRACT_ADDRESS, SEPOLIA_CHAIN_ID, MNEE_DECIMALS } from '@/lib/constants';
 import { formatUnits } from 'viem';
 import { useDemoStore, DEMO_MNEE_BALANCE, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
-import { Eye, Wallet, Sparkles, ChevronDown } from 'lucide-react';
+import { Eye, Wallet, Sparkles, ChevronDown, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -16,20 +17,25 @@ import { cn } from '@/lib/utils';
  * Mobile-first design with demo mode support
  */
 export function WalletButton() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  const { isDemoMode: rawDemoMode, enableDemoMode, disableDemoMode } = useDemoStore();
+  const { isDemoMode: rawDemoMode, demoBalance } = useDemoStore();
   const [showDemoTooltip, setShowDemoTooltip] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  
+  // Check if we're in the demo environment (URL-based)
+  const isInDemoEnvironment = pathname?.startsWith('/demo');
   
   // Handle hydration
   useEffect(() => {
     setIsHydrated(true);
   }, []);
   
-  // Only use demo mode after hydration
-  const isDemoMode = isHydrated && rawDemoMode;
+  // Demo mode is active when in /demo/* routes
+  const isDemoMode = isHydrated && isInDemoEnvironment;
   const demoAddress = DEMO_WALLET_ADDRESS;
   
   // Fetch MNEE token balance
@@ -49,13 +55,14 @@ export function WalletButton() {
     switchChain?.({ chainId: sepolia.id });
   };
 
-  // Handle demo mode toggle
-  const handleDemoToggle = () => {
-    if (isDemoMode) {
-      disableDemoMode();
-    } else {
-      enableDemoMode();
-    }
+  // Enter demo environment
+  const handleEnterDemo = () => {
+    router.push('/demo/marketplace');
+  };
+
+  // Exit demo environment
+  const handleExitDemo = () => {
+    router.push('/marketplace');
   };
 
   // Show loading state during hydration
@@ -68,56 +75,51 @@ export function WalletButton() {
     );
   }
 
-  // If in demo mode, show premium demo wallet UI
+  // If in demo environment, show demo wallet UI
   if (isDemoMode) {
-    const formattedBalance = parseFloat(formatUnits(BigInt(DEMO_MNEE_BALANCE), MNEE_DECIMALS)).toLocaleString('en-US', {
+    const formattedBalance = parseFloat(formatUnits(BigInt(demoBalance), MNEE_DECIMALS)).toLocaleString('en-US', {
       maximumFractionDigits: 0
     });
     const shortAddress = `${demoAddress.slice(0, 6)}...${demoAddress.slice(-4)}`;
     
     return (
       <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* Demo Badge - Compact on mobile */}
-        <div className="relative">
-          <div className={cn(
-            "flex items-center gap-1 px-2 py-1.5 rounded-lg",
-            "bg-gradient-to-r from-amber-500/10 to-orange-500/10",
-            "border border-amber-500/30",
-            "transition-all duration-200"
-          )}>
-            <div className="relative">
-              <Eye className="w-3.5 h-3.5 text-amber-500" />
-              <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-amber-400 animate-pulse" />
-            </div>
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 hidden xs:inline">
-              Demo
-            </span>
-          </div>
+        {/* Demo Badge */}
+        <div className={cn(
+          "flex items-center gap-1 px-2 py-1.5 rounded-lg",
+          "bg-gradient-to-r from-amber-500/10 to-orange-500/10",
+          "border border-amber-500/30"
+        )}>
+          <Eye className="w-3.5 h-3.5 text-amber-500" />
+          <Sparkles className="w-2 h-2 text-amber-400 animate-pulse" />
+          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 hidden xs:inline">
+            Demo
+          </span>
         </div>
         
-        {/* Balance + Address - Combined on mobile */}
-        <button
-          onClick={handleDemoToggle}
-          className={cn(
-            "flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg",
-            "bg-secondary hover:bg-secondary/80",
-            "border border-border",
-            "transition-all duration-200 active:scale-95"
-          )}
-        >
-          <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-sm tabular-nums">
-              {formattedBalance}
-            </span>
-            <span className="text-xs text-muted-foreground hidden sm:inline">MNEE</span>
-          </div>
-          <div className="hidden sm:block w-px h-4 bg-border" />
-          <span className="font-mono text-xs text-muted-foreground hidden sm:inline">
+        {/* Balance Display */}
+        <div className={cn(
+          "flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg",
+          "bg-secondary border border-border"
+        )}>
+          <Wallet className="w-3.5 h-3.5 text-amber-500" />
+          <span className="font-semibold text-sm tabular-nums">{formattedBalance}</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">MNEE</span>
+          <span className="font-mono text-xs text-muted-foreground hidden md:inline">
             {shortAddress}
           </span>
-          <ChevronDown className="w-3 h-3 text-muted-foreground" />
-        </button>
+        </div>
+
+        {/* Exit Demo Button */}
+        <Button
+          onClick={handleExitDemo}
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Exit</span>
+        </Button>
       </div>
     );
   }
@@ -176,10 +178,10 @@ export function WalletButton() {
                       <span className="sm:hidden">Wallet</span>
                     </Button>
                     
-                    {/* Demo Button - Premium style */}
+                    {/* Demo Button - Links to demo environment */}
                     <div className="relative">
                       <Button 
-                        onClick={handleDemoToggle}
+                        onClick={handleEnterDemo}
                         onMouseEnter={() => setShowDemoTooltip(true)}
                         onMouseLeave={() => setShowDemoTooltip(false)}
                         variant="outline"
@@ -208,7 +210,7 @@ export function WalletButton() {
                           "animate-in fade-in slide-in-from-top-2 duration-200",
                           "hidden sm:block z-50"
                         )}>
-                          <p className="text-sm font-medium mb-1">Demo Mode</p>
+                          <p className="text-sm font-medium mb-1">Demo Environment</p>
                           <p className="text-xs text-muted-foreground">
                             Explore the platform with 50,000 virtual MNEE. No wallet required.
                           </p>

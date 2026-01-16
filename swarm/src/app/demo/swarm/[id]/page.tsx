@@ -8,7 +8,7 @@ import { formatUnits } from 'viem';
 import { formatDistanceToNow } from '@/lib/date-utils';
 import Link from 'next/link';
 import { MNEE_DECIMALS } from '@/lib/constants';
-import { useWalletOrDemo } from '@/hooks/use-wallet-or-demo';
+import { useDemoStore, DEMO_WALLET_ADDRESS } from '@/store/demo-store';
 import { 
   Eye, 
   Star, 
@@ -47,31 +47,10 @@ const roleConfig: Record<string, { color: string; label: string; description: st
 
 export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps) {
   const { id } = params;
-  const { isDemoMode, address, getDemoSwarm, demoJobs } = useWalletOrDemo();
+  const { getDemoSwarm, demoJobs } = useDemoStore();
 
+  const address = DEMO_WALLET_ADDRESS;
   const swarm = getDemoSwarm(id);
-
-  if (!isDemoMode) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-lg mx-auto text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-              <Eye className="w-8 h-8 text-amber-500" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">Demo Mode Required</h1>
-            <p className="text-muted-foreground mb-6">
-              Enable demo mode to access this page.
-            </p>
-            <Link href="/marketplace">
-              <Button>Back to Marketplace</Button>
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   if (!swarm) {
     return (
@@ -81,7 +60,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
           <div className="max-w-lg mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Swarm Not Found</h1>
             <p className="text-muted-foreground mb-6">This demo swarm doesn&apos;t exist.</p>
-            <Link href="/marketplace">
+            <Link href="/demo/marketplace">
               <Button>Back to Marketplace</Button>
             </Link>
           </div>
@@ -90,7 +69,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
     );
   }
 
-  const isOwner = address && swarm.owner.toLowerCase() === address.toLowerCase();
+  const isOwner = swarm.owner.toLowerCase() === address.toLowerCase();
   const budgetMnee = formatUnits(BigInt(swarm.budget), MNEE_DECIMALS);
   const formattedBudget = parseFloat(budgetMnee).toLocaleString('en-US', { maximumFractionDigits: 0 });
   
@@ -111,9 +90,9 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           {/* Back button */}
-          <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/demo/marketplace" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Marketplace
+            Demo Marketplace
           </Link>
 
           {/* Demo Badge */}
@@ -131,12 +110,12 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
           </div>
 
           {/* Swarm Header Card */}
-          <Card className="overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-purple-500/10 p-4 sm:p-6">
+          <Card className="overflow-hidden border-amber-200 dark:border-amber-800">
+            <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
                       <Users className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -164,9 +143,9 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                   )}
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-background rounded-xl border">
-                  <Wallet className="w-5 h-5 text-purple-500" />
+                  <Wallet className="w-5 h-5 text-amber-500" />
                   <div>
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 tabular-nums">{formattedBudget}</div>
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">{formattedBudget}</div>
                     <div className="text-xs text-muted-foreground">MNEE Budget</div>
                   </div>
                 </div>
@@ -273,7 +252,7 @@ export default function DemoSwarmDetailPage({ params }: DemoSwarmDetailPageProps
                   {assignedJobs.slice(0, 5).map((job) => (
                     <Link
                       key={job.id}
-                      href={`/job/demo/${job.id}`}
+                      href={`/demo/job/${job.id}`}
                       className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                     >
                       <div className="min-w-0 flex-1">

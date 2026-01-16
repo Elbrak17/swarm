@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useDemoStore } from '@/store/demo-store';
 import { 
   Eye, 
@@ -18,14 +19,14 @@ import { MNEE_DECIMALS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 /**
- * Premium Demo Mode Banner
- * Mobile-first design with expandable details
+ * Demo Environment Banner
+ * Shows when user is in /demo/* routes
  */
 export function DemoBanner() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { 
-    isDemoMode: rawDemoMode, 
     demoBalance, 
-    disableDemoMode, 
     resetDemoData, 
     demoTransactions,
     demoSwarms,
@@ -36,24 +37,25 @@ export function DemoBanner() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  // Check if we're in demo environment
+  const isInDemoEnvironment = pathname?.startsWith('/demo');
+
   // Handle hydration
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  // Only use demo mode after hydration
-  const isDemoMode = isHydrated && rawDemoMode;
-
   // Animate on balance change
   useEffect(() => {
-    if (isDemoMode) {
+    if (isInDemoEnvironment) {
       setIsAnimating(true);
       const timer = setTimeout(() => setIsAnimating(false), 600);
       return () => clearTimeout(timer);
     }
-  }, [demoBalance, isDemoMode]);
+  }, [demoBalance, isInDemoEnvironment]);
 
-  if (!isDemoMode) return null;
+  // Don't render if not hydrated or not in demo environment
+  if (!isHydrated || !isInDemoEnvironment) return null;
 
   const formattedBalance = parseFloat(formatUnits(BigInt(demoBalance), MNEE_DECIMALS)).toLocaleString('en-US', {
     maximumFractionDigits: 0
@@ -61,6 +63,10 @@ export function DemoBanner() {
   const txCount = demoTransactions.length;
   const swarmCount = demoSwarms.length;
   const jobCount = demoJobs.length;
+
+  const handleExitDemo = () => {
+    router.push('/marketplace');
+  };
 
   return (
     <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg">
@@ -77,7 +83,8 @@ export function DemoBanner() {
                 <Eye className="w-4 h-4" />
                 <Sparkles className="w-2 h-2 absolute -top-0.5 -right-0.5 text-yellow-200 animate-pulse" />
               </div>
-              <span className="font-semibold text-sm hidden xs:inline">Demo</span>
+              <span className="font-semibold text-sm hidden xs:inline">Demo Environment</span>
+              <span className="font-semibold text-sm xs:hidden">Demo</span>
             </div>
             
             {/* Balance - prominent on mobile */}
@@ -132,10 +139,10 @@ export function DemoBanner() {
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                disableDemoMode();
+                handleExitDemo();
               }}
               className="h-7 px-2 sm:px-3 text-white hover:bg-white/20 hover:text-white"
-              title="Exit demo mode"
+              title="Exit demo environment"
             >
               <X className="w-3.5 h-3.5 sm:mr-1" />
               <span className="hidden sm:inline text-xs">Exit</span>
@@ -165,7 +172,7 @@ export function DemoBanner() {
             </div>
           </div>
           <p className="text-[10px] text-center mt-2 opacity-70">
-            Demo mode • Simulated data • No real transactions
+            Virtual environment • Simulated data • No real transactions
           </p>
         </div>
       </div>
