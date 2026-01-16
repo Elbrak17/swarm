@@ -74,7 +74,6 @@ export function CreateSwarmForm() {
   // Use the unified hook for all wallet/demo state
   const { 
     isDemoMode, 
-    isReallyConnected,
     isConnected,
     address, 
     createDemoSwarm, 
